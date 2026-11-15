@@ -42,12 +42,13 @@ function stringRuns(si: XmlNode): Run[] {
 /** Per cell style: bold, italic, and whether the number is a date or a percent. */
 function readStyles(xml: string | undefined): CellStyle[] {
   const root = rootOf(xml)
-  const formats = new Map(elements(child(root, 'numFmts'), 'numFmt').map(f => [Number(f.attrs.numFmtId), f.attrs.formatCode ?? '']))
+  // A custom code is a date or a time when it has d, m or y outside quotes and brackets. Excel's codes are at most 255 characters.
+  const strip = (code = '') => (code.length > 255 ? '' : code.replace(/"[^"]*"|\[[^\]]*\]/g, ''))
+  const formats = new Map(elements(child(root, 'numFmts'), 'numFmt').map(f => [Number(f.attrs.numFmtId), strip(f.attrs.formatCode)]))
   const fonts = elements(child(root, 'fonts'), 'font').map(f => ({ bold: on(child(f, 'b')), italic: on(child(f, 'i')) }))
   return elements(child(root, 'cellXfs'), 'xf').map(xf => {
     const id = Number(xf.attrs.numFmtId ?? 0)
-    // A custom code is a date or a time when it has d, m or y outside quotes and brackets.
-    const code = (formats.get(id) ?? '').replace(/"[^"]*"|\[[^\]]*\]/g, '')
+    const code = formats.get(id) ?? ''
     return {
       ...fonts[Number(xf.attrs.fontId ?? 0)],
       date: DATE_IDS.has(id) || /[dmy]/i.test(code),

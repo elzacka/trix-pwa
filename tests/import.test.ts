@@ -188,7 +188,7 @@ it('rtf: TextEdit (Cocoa) list and utf-8; not RTF refused', () => {
 it('import: text files pass through; other types and large files refused', async () => {
   expect(await importText('a.md', rtf('## Å\n'), 'oppslag')).toBe('## Å\n')
   await expect(importText('a.doc', rtf('x'), 'oppslag')).rejects.toThrow(/filtype/)
-  await expect(importText('a.md', { length: 60 * 1024 * 1024 } as Uint8Array, 'oppslag')).rejects.toThrow(/50 MB/)
+  await expect(importText('a.md', { length: 60 * 1024 * 1024 } as Uint8Array, 'oppslag')).rejects.toThrow(/for stor/)
 })
 
 it('replace keeps the title and top comment unless the import has its own', () => {
@@ -340,4 +340,28 @@ it('cells round-trip backslashes before, after and without a pipe', () => {
   const keys = toMarkdown([{ type: 'table', rows: [['a\\', 'ctrl \\', '⌘\\'].map(t => [{ text: t }])] }], 'hurtigtaster')
   expect(tab(keys, 'hurtigtaster').shortcuts[0].items.map(i => i.title)).toEqual(['a\\'])
 })
+})
+
+// Crafted documents must not freeze the import or write a file the app refuses (TRIX-SEC-10, -12, -14, -15).
+describe('import limits', () => {
+  const run = (text: string, href?: string) => ({ text, bold: false, italic: false, href })
+  it('a long link label stays text, quickly', () => {
+    const started = performance.now()
+    const out = toMarkdown([{ type: 'paragraph', runs: [run('*a'.repeat(40_000), 'https://x.no')] }], 'oppslag')
+    expect(out).not.toContain('](https://x.no)')
+    expect(performance.now() - started).toBeLessThan(500)
+  })
+  it('heading levels stay within 1–9', () => {
+    const blocks: Block[] = Array.from({ length: 20_000 }, (_, i) => ({ type: 'heading', level: i - 10_000, runs: [run(`H${i}`)] }))
+    const started = performance.now()
+    toMarkdown(blocks, 'oppslag')
+    expect(performance.now() - started).toBeLessThan(1000)
+  })
+  it('a text file over the tab limit is refused', () => {
+    expect(importable('a.md', 3 * 1024 * 1024)).toBe(false)
+    expect(importable('a.docx', 3 * 1024 * 1024)).toBe(true)
+  })
+  it('keeps the frontmatter apart when the file ends at its closing line', () => {
+    expect(replaceContent('---\nmodul: oppslag\n---', '### Ny\nTekst\n')).toBe('---\nmodul: oppslag\n---\n### Ny\nTekst\n')
+  })
 })

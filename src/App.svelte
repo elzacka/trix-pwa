@@ -20,7 +20,7 @@
   let restoreInput = $state<HTMLInputElement>()
   let importInput = $state<HTMLInputElement>()
   let importDialog = $state<HTMLDialogElement>()
-  let importing = $state<{ file: string; merged: string; replaced: string } | null>(null)
+  let importing = $state<{ file: string; merged: string; replaced: string; original: string } | null>(null)
   let dropping = $state(false)
   let notice = $state('')
   let capturing = $state(false)
@@ -56,22 +56,31 @@
     if (!tab) return
     const result = await app.readImport(file)
     if (!result) return void (app.error = app.t('passer ikke', { fil: file.name, fane: tab.name }))
-    if (!result.hasContent) return app.editWith(tab.file, result.replaced)
+    if (!result.hasContent) return app.editWith(tab.file, result.replaced, result.original)
     importing = { file: file.name, ...result }
     importDialog?.showModal()
   }
 
   function finishImport(how: 'merged' | 'replaced' | null) {
     const tab = app.tab
-    if (how && importing && tab) app.editWith(tab.file, importing[how])
+    if (how && importing && tab) app.editWith(tab.file, importing[how], importing.original)
     importDialog?.close()
   }
 
   const canDrop = () => app.phase === 'ready' && !!app.tab && !app.editing && !app.customizing && !document.querySelector('dialog[open]')
   const files = (event: DragEvent) => event.dataTransfer?.types.includes('Files') ?? false
 
+  // Anything else dropped, such as a link, would make the browser leave the app and lose unsaved text.
+  const editable = (event: DragEvent) => (event.target as Element).closest?.('input, textarea')
+
   function dragover(event: DragEvent) {
-    if (!files(event)) return
+    if (!files(event)) {
+      if (!editable(event)) {
+        event.preventDefault()
+        event.dataTransfer!.dropEffect = 'none'
+      }
+      return
+    }
     event.preventDefault()
     event.dataTransfer!.dropEffect = canDrop() ? 'copy' : 'none'
     dropping = canDrop()
@@ -79,7 +88,7 @@
 
   /** A file dropped on a tab goes into that tab; anywhere else, into the tab shown. */
   async function drop(event: DragEvent) {
-    if (!files(event)) return
+    if (!files(event)) return void (!editable(event) && event.preventDefault())
     event.preventDefault()
     dropping = false
     const file = event.dataTransfer?.files[0]

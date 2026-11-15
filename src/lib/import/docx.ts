@@ -121,11 +121,16 @@ function attributes(body: string): Record<string, string> {
 }
 
 /** XML as a tree of `{ name, attrs, children }` and strings. No DTD, no entities beyond the five and numeric ones. */
+/** Elements and text pieces one XML part may hold: each costs memory far beyond its bytes. */
+const NODE_LIMIT = 500_000
+
 export function parseXml(text: string): XmlNode {
   const root: XmlNode = { name: '', attrs: {}, children: [] }
   const stack = [root]
   let at = 0
+  let nodes = 0
   while (at < text.length) {
+    if (++nodes > NODE_LIMIT) throw new Error('Fila er for stor')
     const open = text.indexOf('<', at)
     if (open < 0 || open > at) stack.at(-1)!.children.push(decode(text.slice(at, open < 0 ? text.length : open)))
     if (open < 0) break
@@ -207,7 +212,7 @@ function readRels(xml: string | undefined) {
 /** Runs of a paragraph, through links, insertions, content controls and fields; deleted text left out. */
 function runs(paragraph: XmlNode, rels: Map<string, string>): Run[] {
   const out: Run[] = []
-  let field: { code: string; result: boolean } | null = null
+  let field: { code: string; result: boolean; href?: string } | null = null
   const walk = (node: XmlNode, href?: string) => {
     for (const c of elements(node)) {
       if (c.name === 'w:r') run(c, href)
@@ -222,11 +227,15 @@ function runs(paragraph: XmlNode, rels: Map<string, string>): Run[] {
       if (c.name === 'w:fldChar') {
         const type = c.attrs['w:fldCharType']
         if (type === 'begin') field = { code: '', result: false }
-        else if (type === 'separate' && field) field.result = true
+        else if (type === 'separate' && field) {
+          field.result = true
+          // Read once here, not per run of the result: a long code would make every run scan it.
+          field.href = field.code.length <= 4096 ? field.code.match(/HYPERLINK\s+"([^"]+)"/)?.[1] : undefined
+        }
         else if (type === 'end') field = null
       } else if (c.name === 'w:instrText' && field) field.code += textOf(c)
       else if (field && !field.result) continue
-      else if (c.name === 'w:t') out.push({ text: textOf(c), ...style, href: field?.code.match(/HYPERLINK\s+"([^"]+)"/)?.[1] ?? href })
+      else if (c.name === 'w:t') out.push({ text: textOf(c), ...style, href: field?.href ?? href })
       else if (['w:tab', 'w:br', 'w:cr'].includes(c.name)) out.push({ text: ' ', ...style, href })
       else if (c.name === 'w:noBreakHyphen') out.push({ text: '-', ...style, href })
     }

@@ -11,6 +11,7 @@ const SKIP = new Set([
 
 // Real documents nest a few dozen groups; each level holds a copy of the state.
 const DEPTH_LIMIT = 1000
+const PIECE_LIMIT = 500_000
 
 const SYMBOLS: Record<string, string> = {
   emdash: '—', endash: '–', bullet: '•', lquote: '‘', rquote: '’', ldblquote: '“', rdblquote: '”',
@@ -62,7 +63,10 @@ export function readRtf(bytes: Uint8Array): Block[] {
     pending = []
     addText(text)
   }
+  let pieces = 0
   const addText = (text: string) => {
+    // Each piece costs memory far beyond its bytes: `\~` is one piece per two bytes.
+    if (++pieces > PIECE_LIMIT) throw new Error('Fila er for stor')
     if (state.collect) state.collect.text += text
     else if (!state.skip) (para.table ? cell : runs).push({ text, bold: state.bold, italic: state.italic, href: state.href })
   }

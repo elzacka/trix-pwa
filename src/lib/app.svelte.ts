@@ -259,7 +259,7 @@ class App {
   }
 
   /** A file as content for the current tab, or null when it holds nothing the tab shows. */
-  async readImport(file: File): Promise<{ merged: string; replaced: string; hasContent: boolean } | null> {
+  async readImport(file: File): Promise<{ merged: string; replaced: string; hasContent: boolean; original: string } | null> {
     const tab = this.tab
     const original = tab && this.files.get(tab.file)?.text
     if (!tab || original === undefined || !importable(file.name, file.size)) return null
@@ -270,13 +270,12 @@ class App {
     }
     const replaced = replaceContent(original, imported)
     if (!count(replaced)) return null
-    return { merged: mergeContent(original, imported), replaced, hasContent: count(original) > 0 }
+    return { merged: mergeContent(original, imported), replaced, hasContent: count(original) > 0, original }
   }
 
-  /** The editor with `text` in place of the file's content; «Lagre» writes it. */
-  editWith(name: string, text: string) {
-    const file = this.files.get(name)
-    if (file) this.editing = { name, original: file.text, text }
+  /** The editor with `text` built from `original`; «Lagre» writes it only while the file still holds `original`. */
+  editWith(name: string, text: string, original: string) {
+    this.editing = { name, original, text }
   }
 
   /** False when the file changed elsewhere since it was opened; nothing is written then. */

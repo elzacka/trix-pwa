@@ -2,6 +2,7 @@
 
 import type { Module } from '../content'
 import { CELL_LIMIT, parseInline } from '../markdown'
+import { FILE_LIMIT as TAB_LIMIT } from '../storage'
 import { frontmatter } from '../text'
 import { readDocx } from './docx'
 import type { Block, Run } from './docx'
@@ -11,18 +12,26 @@ import { readCsv } from './csv'
 
 export const IMPORT_TYPES = ['.md', '.markdown', '.txt', '.rtf', '.docx', '.xlsx', '.csv']
 
-export const FILE_LIMIT = 50 * 1024 * 1024
-// Characters one import may write: a short file can repeat a link once per run.
-const OUTPUT_LIMIT = 2 * FILE_LIMIT
+// Documents may hold images; text files go in as they are, so they get the limit of a tab file.
+export const FILE_LIMIT = 10 * 1024 * 1024
+const TEXT_TYPES = ['.md', '.markdown', '.txt', '.csv']
 
 const typeOf = (name: string) => name.toLowerCase().match(/\.[^.]*$/)?.[0]
 
 /** A file the app reads, by name and size: checked before the file is read. */
-export const importable = (name: string, size: number): boolean => IMPORT_TYPES.includes(typeOf(name) ?? '') && size <= FILE_LIMIT
+export const importable = (name: string, size: number): boolean =>
+  IMPORT_TYPES.includes(typeOf(name) ?? '') && size <= (TEXT_TYPES.includes(typeOf(name) ?? '') ? TAB_LIMIT : FILE_LIMIT)
 
 /** The file's content as Markdown for `module`; throws when the file is not one the app reads. */
 export async function importText(name: string, bytes: Uint8Array, module: Module): Promise<string> {
-  if (!importable(name, bytes.length)) throw new Error(`${name}: ukjent filtype eller større enn 50 MB`)
+  if (!importable(name, bytes.length)) throw new Error(`${name}: ukjent filtype eller for stor`)
+  const text = await read(name, bytes, module)
+  // The result becomes a tab file, which the app reads only up to this size.
+  if (text.length > TAB_LIMIT) throw new Error('Fila er for stor')
+  return text
+}
+
+async function read(name: string, bytes: Uint8Array, module: Module): Promise<string> {
   const type = typeOf(name)
   if (type === '.docx') return toMarkdown(await readDocx(bytes), module)
   if (type === '.rtf') return toMarkdown(readRtf(bytes), module)
@@ -35,7 +44,8 @@ export async function importText(name: string, bytes: Uint8Array, module: Module
 
 /** A link the app shows as one, short enough that repeating it cannot blow up the text. */
 function link(words: string, href: string | undefined): string {
-  if (!href || href.length > 2048) return words
+  // A long label would make the parser slow; it stays text.
+  if (!href || href.length > 2048 || words.length > 500) return words
   const out = `[${words}](${href})`
   const nodes = parseInline(out)
   return nodes.length === 1 && nodes[0].type === 'link' ? out : words
@@ -119,9 +129,11 @@ export function toMarkdown(blocks: Block[], module: Module): string {
   const cells = kept.reduce((n, b) => n + (b.type === 'table' ? b.rows.length * widthOf(b) : 0), 0)
   if (cells > CELL_LIMIT) throw new Error('For mange celler')
   // Levels count from the document's own top heading: a document may start at Overskrift 2.
+  // Levels 1–9 only, as Word has: a crafted file could give every heading its own level.
+  for (const b of kept) if (b.type === 'heading') b.level = Math.min(9, Math.max(1, b.level))
   const levels = [...new Set(kept.flatMap(b => (b.type === 'heading' ? [b.level] : [])))].sort((a, b) => a - b)
   for (const b of kept) if (b.type === 'heading') b.rank = levels.indexOf(b.level)
-  let left = OUTPUT_LIMIT
+  let left = TAB_LIMIT
   const spend = (text: string) => {
     left -= text.length
     if (left < 0) throw new Error('Fila er for stor')
@@ -134,7 +146,9 @@ export function toMarkdown(blocks: Block[], module: Module): string {
 /** The tab's file with its body replaced; its frontmatter, title and top comment stay unless the import brings its own title or comment. */
 export function replaceContent(current: string, imported: string): string {
   const { body } = frontmatter(current)
-  const front = current.slice(0, current.length - body.length)
+  const top = current.slice(0, current.length - body.length)
+  // A file that ends at the closing --- would glue the body to it.
+  const front = top && !top.endsWith('\n') ? `${top}\n` : top
   const next = frontmatter(imported).body
   if (/^\s*(#\s|<!--)/.test(next)) return front + next
   const lines = body.replace(/\r\n/g, '\n').split('\n')

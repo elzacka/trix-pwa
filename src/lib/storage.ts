@@ -70,7 +70,8 @@ export async function pickFolder(): Promise<FileSystemDirectoryHandle> {
 /** The browser's private folder; asks the browser to keep it when space runs low. */
 export async function browserFolder(): Promise<FileSystemDirectoryHandle> {
   const root = await navigator.storage.getDirectory()
-  await navigator.storage.persist?.().catch(() => false)
+  // Not awaited: Firefox asks the user, and the app need not wait for the answer.
+  navigator.storage.persist?.().catch(() => false)
   return root.getDirectoryHandle(FOLDER_NAME, { create: true })
 }
 

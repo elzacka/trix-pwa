@@ -61,6 +61,8 @@ export interface Tab {
   options: Option[]
   placeholder: string
   columns: number | null
+  /** False when the shortcut names hold too much markup to parse: they show as plain text. */
+  markup: boolean
   groups: Group<Entry>[]
   shortcuts: Group<Shortcut>[]
 }
@@ -100,10 +102,16 @@ export function parseTab(file: string, text: string): TabResult {
     options: valg ?? DEFAULT_OPTIONS[modul],
     placeholder: søketekst ?? '',
     columns: bredde ?? null,
+    markup: true,
     groups: [],
     shortcuts: [],
   }
-  if (modul === 'hurtigtaster') tab.shortcuts = parseShortcuts(lines, bodyLine)
+  if (modul === 'hurtigtaster') {
+    tab.shortcuts = parseShortcuts(lines, bodyLine)
+    // Each name is short, but thousands of crafted ones would still stall the tab.
+    const names = tab.shortcuts.flatMap(g => g.items.flatMap(s => [s.title, s.box ?? '']))
+    tab.markup = names.reduce((n, name) => n + (/[*_[`~\\]/.test(name) ? name.length : 0), 0) <= 100_000
+  }
   else tab.groups = parseEntries(lines, bodyLine)
   return { tab, problems: [] }
 }

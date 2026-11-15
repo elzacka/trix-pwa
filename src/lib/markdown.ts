@@ -20,7 +20,8 @@ const parseable = (text: string) =>
   text.split(/\n[ \t]*\n/).every(block => {
     const lines = block.trim().split('\n')
     // Each table row and list item is parsed on its own, so their length counts line by line.
-    const rows = lines.every(l => /^\s*(\||[-*+]\s|\d+[.)]\s)/.test(l))
+    const table = lines.length > 1 && lines.every(l => l.trimStart().startsWith('|')) && /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/.test(lines[1])
+    const rows = table || lines.every(l => /^\s*([-*+]|\d{1,9}[.)])\s/.test(l))
     return rows ? lines.every(l => l.length <= ROW_LIMIT) : block.length <= BLOCK_LIMIT
   })
 

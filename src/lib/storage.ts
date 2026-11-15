@@ -55,11 +55,12 @@ export class Folder {
   /** Writes only while the file still holds `original` (null: must not exist), so an edit made elsewhere survives. */
   async write(name: string, text: string, original: string | null): Promise<void> {
     if (!isFileName(name)) throw new Error(`Ugyldig filnavn: ${name}`)
-    if (new Blob([text]).size > FILE_LIMIT) throw new Error('Teksten er større enn 2 MB, så den kan ikke lagres')
+    const out = original?.includes('\r\n') ? text.replace(/\r?\n/g, '\r\n') : text
+    if (new Blob([out]).size > FILE_LIMIT) throw new Error('Teksten er større enn 2 MB, så den kan ikke lagres')
     if (original === null ? await this.exists(name) : (await this.text(name)) !== original) throw new Changed(name)
     const handle = await this.dir.getFileHandle(name, { create: true })
     const writable = await handle.createWritable()
-    await writable.write(original?.includes('\r\n') ? text.replace(/\r?\n/g, '\r\n') : text)
+    await writable.write(out)
     await writable.close()
   }
 

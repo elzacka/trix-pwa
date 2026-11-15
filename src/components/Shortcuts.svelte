@@ -27,7 +27,7 @@
 {#snippet row(item: Shortcut)}
   {#if keys(item).length}
     <div class="shortcut" data-anchor={item.slug}>
-      <span class="name"><Inline text={item.title} /></span>
+      <span class="name"><Inline text={item.title} markup={tab.markup} /></span>
       <span class="keys">
         {#each keys(item) as alternative, i (i)}
           {#if i > 0}<span class="or">eller</span>{/if}
@@ -47,7 +47,7 @@
       {#each runs(group.items) as run (run.items[0].id)}
         {#if run.box}
           <details class="box" open={view.query.trim() !== ''}>
-            <summary><Inline text={run.box} /></summary>
+            <summary><Inline text={run.box} markup={tab.markup} /></summary>
             {#each run.items as item (item.id)}{@render row(item)}{/each}
           </details>
         {:else}

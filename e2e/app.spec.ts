@@ -13,7 +13,7 @@ async function start(page: Page) {
     }
   })
   // WebKit shares OPFS between profiles: start from an empty folder.
-  await page.goto('manifest.webmanifest')
+  await page.goto('icon.svg')
   await page.evaluate(async () => {
     const root = await navigator.storage.getDirectory()
     for await (const name of (root as unknown as { keys(): AsyncIterable<string> }).keys()) await root.removeEntry(name, { recursive: true })

@@ -11,7 +11,7 @@ Report a vulnerability: hei@tazk.no.
 
 ## Threat model
 
-A static app on GitHub Pages: no server code, no accounts, no network calls of its own.
+A static app on GitHub Pages at `trix.tazk.no`: no server code, no accounts, no network calls of its own.
 
 | Entry point | Threat | Mitigation |
 |---|---|---|
@@ -21,6 +21,6 @@ A static app on GitHub Pages: no server code, no accounts, no network calls of i
 | File names | Path out of the folder | Plain names with `.md` only (`isFileName`), checked before every read and write |
 | Backup zip | Zip bomb, other file types | `.md` with a plain name only; 500 files and 20 MB in all |
 | Another site framing the app | Clickjacking | The app does not start inside a frame (`main.ts`); `frame-ancestors` is not available in a meta CSP |
-| Shared origin `elzacka.github.io` | Another app on the same origin reads OPFS and the folder handle | Accepted until the app moves to `trix.tazk.no`; no users before that |
+| Other apps of the same owner | Read OPFS and the folder handle | Own origin `trix.tazk.no`, no other app on it |
 | Dependencies | Supply chain | Exact versions, `npm audit --audit-level=high` in CI, Dependabot. Accepted: low and moderate advisories in build-time tools (workbox-build, vite-plugin-svelte), whose inputs are this repository's files |
 | Workflow | Token misuse | Actions pinned to commit SHAs; `contents: read`, Pages write only in the deploy job |

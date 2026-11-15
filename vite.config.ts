@@ -3,8 +3,8 @@ import { defineConfig, type Plugin } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// GitHub Pages project path; `/` once the app has its own domain.
-const base = process.env.TRIX_BASE ?? '/trix-pwa/'
+// The app's own domain, trix.tazk.no, serves it from the root.
+const base = process.env.TRIX_BASE ?? '/'
 
 const CSP = [
   "default-src 'self'",

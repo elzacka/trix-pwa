@@ -9,5 +9,5 @@ Svelte 5 PWA port of Trix (`~/dev/trix`): the same purpose, built anew for the w
 - Content is rendered from the mdast tree as elements (`Md.svelte`), never as HTML. Links: `https?:` to the browser, `Fil.md#sted` and `#sted` inside the app, anything else as text.
 - CSP is a meta tag added at build (`vite.config.ts`), with Trusted Types: `svelte-trusted-html` (Svelte) and `trix-sw` (service worker URL only). A new policy name or an inline script or style breaks the build in the browser; e2e fails on any CSP violation.
 - Colours and font from `Oppsett.md` go on `:root` through CSSOM (`theme.ts`), only values `CSS.supports` accepts.
-- The origin must not change once users exist: their data and folder access belong to it. Base path from `TRIX_BASE` (default `/trix-pwa/`).
+- The origin `https://trix.tazk.no` must not change: users' data and folder access belong to it. Base path `/`; `TRIX_BASE` overrides it.
 - UI text: Norwegian Bokmål, defaults in `texts.ts`, overridable under `tekster` in `Oppsett.md`. CHANGELOG: `dev_only/CHANGELOG.md`, private.

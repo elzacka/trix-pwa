@@ -1,0 +1,35 @@
+// Every UI text, overridable under `tekster` in Oppsett.md.
+
+export const TEXTS = {
+  navn: 'Trix',
+  søk: 'Søk',
+  'tøm søk': 'Tøm søk',
+  treff: '{antall} treff',
+  'ingen treff': 'Ingen treff på «{søk}»',
+  tom: 'Lista er tom',
+  'vis alt': 'Vis alt',
+  merket: 'Viser {antall} med {emner}',
+  'fjern merke': 'Fjern {emne}',
+  også: 'Også',
+  engelsk: 'Engelsk',
+  tilbake: 'Tilbake',
+  'tilbake til': 'Tilbake til {sted}',
+  'bli her': 'Bli her',
+  faner: 'Faner',
+  meny: 'Flere valg',
+  rediger: 'Endre innhold i {fane}',
+  'ny fane': 'Legg til fane',
+  oppsett: 'Tilpass appen',
+  eksporter: 'Lag sikkerhetskopi',
+  importer: 'Hent sikkerhetskopi',
+  'bytt mappe': 'Bytt mappe',
+  lagre: 'Lagre',
+  avbryt: 'Avbryt',
+  forkast: 'Forkast endringene',
+  'endret utenfor': 'Fila er endret utenfor {navn}. Kopier endringene dine, avbryt og åpne fila på nytt.',
+  'ny versjon': 'En ny versjon av {navn} er klar',
+  oppdater: 'Oppdater',
+  'snu kort': 'Snu kortet',
+} as const
+
+export type TextKey = keyof typeof TEXTS

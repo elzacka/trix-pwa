@@ -1,0 +1,35 @@
+{
+  "name": "trix-pwa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "svelte-check --fail-on-warnings && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "fflate": "0.8.3",
+    "mdast-util-from-markdown": "2.1.0",
+    "mdast-util-gfm": "3.1.0",
+    "micromark-extension-gfm": "3.0.0",
+    "minisearch": "7.2.0",
+    "svelte": "5.57.3",
+    "valibot": "1.5.0",
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.65.1",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@types/mdast": "4.0.4",
+    "@types/node": "26.6.6",
+    "svelte-check": "4.7.8",
+    "typescript": "6.0.3",
+    "vite": "8.3.8",
+    "vite-plugin-pwa": "2.0.0",
+    "vitest": "5.1.0"
+  }
+}

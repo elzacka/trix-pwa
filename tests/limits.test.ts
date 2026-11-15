@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { parseInline, parseMarkdown, TEXT_LIMIT } from '../src/lib/markdown'
 import { colorPair, parseSetup } from '../src/lib/setup'
 import { plain } from '../src/lib/text'
-import { parseTab } from '../src/lib/content'
+import { ITEM_LIMIT, parseTab } from '../src/lib/content'
+import { keyParts } from '../src/lib/keys'
 import { Folder } from '../src/lib/storage'
 import { fakeDir } from './fakefs'
 
@@ -47,5 +48,16 @@ describe('limits', () => {
   it('counts the size after Windows line endings', async () => {
     const folder = new Folder(fakeDir({ 'A.md': 'a\r\n' }), 'nettleser')
     await expect(folder.write('A.md', 'a\n'.repeat(800_000), 'a\r\n')).rejects.toThrow(/2 MB/)
+  })
+  it('caps items per tab, boxes and tags per entry, and key alternatives', () => {
+    const many = Array.from({ length: ITEM_LIMIT + 10 }, (_, i) => `### E${i}`).join('\n')
+    const { tab, problems } = parseTab('O.md', `---\nmodul: oppslag\n---\n${many}\n`)
+    expect(tab!.groups.flatMap(g => g.items)).toHaveLength(ITEM_LIMIT)
+    expect(problems).toEqual([`O.md: Fanen viser de første ${ITEM_LIMIT} av ${ITEM_LIMIT + 10} oppføringer`])
+    const boxes = '::: B\nx\n:::\n'.repeat(500) + Array.from({ length: 200 }, (_, i) => `#t${i}`).join(' ')
+    const entry = parseTab('O.md', `---\nmodul: oppslag\n---\n### E\n${boxes}\n`).tab!.groups[0].items[0]
+    expect(entry.segments.length).toBeLessThanOrEqual(200)
+    expect(entry.tags.length).toBeLessThanOrEqual(50)
+    expect(keyParts(Array(30).fill('x').join(' eller '), 'mac')).toHaveLength(1)
   })
 })

@@ -74,6 +74,21 @@ const Meta = v.object({
   bredde: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(6))),
 })
 
+// Caps far above real content: a crafted file of hundreds of thousands of items would stall drawing.
+export const ITEM_LIMIT = 5000
+const SEGMENT_LIMIT = 200
+const TAG_LIMIT = 50
+
+/** At most `ITEM_LIMIT` items, the first ones in the file. */
+function capped<T>(groups: Group<T>[]): Group<T>[] {
+  let left = ITEM_LIMIT
+  return groups.map(g => {
+    const items = g.items.slice(0, Math.max(0, left))
+    left -= items.length
+    return { ...g, items }
+  })
+}
+
 export type TabResult = { tab: Tab | null; problems: string[] }
 
 /** Parses one tab's file; `null` when it is not a tab (no `modul` at the top). */
@@ -111,8 +126,13 @@ export function parseTab(file: string, text: string): TabResult {
     // Each name is short, but thousands of crafted ones would still stall the tab.
     const names = tab.shortcuts.flatMap(g => g.items.flatMap(s => [s.title, s.box ?? '']))
     tab.markup = names.reduce((n, name) => n + name.length, 0) <= 100_000
+  } else tab.groups = parseEntries(lines, bodyLine)
+  const items = [...tab.groups, ...tab.shortcuts].reduce((n, g) => n + g.items.length, 0)
+  if (items > ITEM_LIMIT) {
+    tab.groups = capped(tab.groups)
+    tab.shortcuts = capped(tab.shortcuts)
+    return { tab, problems: [`${file}: Fanen viser de første ${ITEM_LIMIT} av ${items} oppføringer`] }
   }
-  else tab.groups = parseEntries(lines, bodyLine)
   return { tab, problems: [] }
 }
 
@@ -132,7 +152,8 @@ export function parseEntries(lines: string[], first = 1): Group<Entry>[] {
 
   const close = () => {
     if (!entry) return
-    entry.segments = entry.segments.map(s => ({ ...s, text: s.text.trim() })).filter(s => s.text || s.kind === 'box')
+    entry.segments = entry.segments.map(s => ({ ...s, text: s.text.trim() })).filter(s => s.text || s.kind === 'box').slice(0, SEGMENT_LIMIT)
+    entry.tags = entry.tags.slice(0, TAG_LIMIT)
     const paragraph = entry.segments[0]?.kind === 'md' ? entry.segments[0].text.split(/\n\s*\n/)[0] : ''
     // Only a plain paragraph leads; a list, table or heading stays in the body.
     entry.lead = paragraph.split('\n').every(l => !/^([-*+]\s|\d+\.\s|\||#)/.test(l.trim())) ? paragraph : ''

@@ -100,12 +100,16 @@ export function pressedCombo(e: KeyEvent, os: Os): string | null {
   return formatCombo([...mods, key].filter(Boolean).join(' '), os)
 }
 
+const ALTERNATIVE_LIMIT = 20
+
 const QUOTED = /"([^"]+)"|«([^»]+)»/g
 
 /** A cell of a shortcut list: alternatives split on «eller», quoted words kept as text. */
 export function keyParts(cell: string, os: Os): KeyPart[][] {
-  return cell
-    .split(/\s+eller\s+/i)
+  const alternatives = cell.split(/\s+eller\s+/i)
+  // Real cells hold a few alternatives; a crafted one with thousands shows as text.
+  if (alternatives.length > ALTERNATIVE_LIMIT) return [[{ text: cell }]]
+  return alternatives
     .map(alternative => {
       const parts: KeyPart[] = []
       let at = 0

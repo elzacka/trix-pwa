@@ -8,6 +8,9 @@ export type Kind = 'mappe' | 'nettleser'
 
 export class Changed extends Error {}
 
+/** Larger files are not read: one file must not stall the app. */
+export const FILE_LIMIT = 2 * 1024 * 1024
+
 export interface FileText {
   text: string
   modified: number
@@ -30,6 +33,7 @@ export class Folder {
 
   async read(name: string): Promise<FileText> {
     const file = await (await this.file(name)).getFile()
+    if (file.size > FILE_LIMIT) throw new Error('Fila er større enn 2 MB, så appen viser den ikke')
     return { text: await file.text(), modified: file.lastModified }
   }
 

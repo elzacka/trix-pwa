@@ -1,0 +1,27 @@
+import { describe, expect, it } from 'vitest'
+import { parseInline, parseMarkdown, TEXT_LIMIT } from '../src/lib/markdown'
+import { colorPair, parseSetup } from '../src/lib/setup'
+import { plain } from '../src/lib/text'
+
+// Crafted content from a shared file or a restored backup must not stall the app (TRIX-SEC-01, -02).
+describe('limits', () => {
+  it('strips a long run of link openers in linear time', () => {
+    const started = performance.now()
+    plain('[a]('.repeat(250_000))
+    expect(performance.now() - started).toBeLessThan(500)
+    expect(plain('Se [lenken](https://x.no) og [den](Fil.md#sted)')).toBe('Se lenken og den')
+  })
+  it('keeps long text out of the parser', () => {
+    const text = '*a'.repeat(TEXT_LIMIT)
+    const started = performance.now()
+    expect(parseMarkdown(text).children).toEqual([{ type: 'paragraph', children: [{ type: 'text', value: text }] }])
+    expect(parseInline('[a]('.repeat(1001))).toEqual([{ type: 'text', value: '[a]('.repeat(1001) }])
+    expect(performance.now() - started).toBeLessThan(100)
+  })
+  it('takes only real colours and own text keys (TRIX-SEC-06, -07)', () => {
+    expect(colorPair('var(--x)')).toBeNull()
+    expect(colorPair('#fff / inherit')).toBeNull()
+    expect(colorPair('rgb(0 0 0 / 50%)')).not.toBeNull()
+    expect(parseSetup('---\ntekster:\n  toString: x\n---\n').problems).toHaveLength(1)
+  })
+})

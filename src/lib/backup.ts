@@ -2,7 +2,7 @@
 
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
 import { isFileName } from './text'
-import type { Folder } from './storage'
+import { FILE_LIMIT, type Folder } from './storage'
 
 const LIMIT = { files: 500, bytes: 20 * 1024 * 1024 }
 
@@ -19,7 +19,7 @@ export function readBackup(bytes: Uint8Array): Map<string, string> {
   const entries = unzipSync(bytes, {
     filter: file => {
       const name = file.name.split('/').pop() ?? ''
-      if (!isFileName(name) || ++count > LIMIT.files || (total += file.originalSize) > LIMIT.bytes) return false
+      if (!isFileName(name) || file.originalSize > FILE_LIMIT || ++count > LIMIT.files || (total += file.originalSize) > LIMIT.bytes) return false
       return true
     },
   })

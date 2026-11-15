@@ -166,7 +166,7 @@ class App {
         if (old?.text !== file.text) changed = true
         next.set(name, file)
       } catch (error) {
-        problems.push(`${name}: ${String(error)}`)
+        problems.push(`${name}: ${(error as Error).message}`)
       }
     }
     if (!changed && this.tabs.length) return

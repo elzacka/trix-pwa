@@ -7,11 +7,15 @@ import type { Nodes, Root, RootContent, PhrasingContent } from 'mdast'
 
 /** Table cells per text: a crafted table must not stall rendering. */
 export const CELL_LIMIT = 20000
+/** Longer text shows as plain text: the parser slows down sharply on crafted input. */
+export const TEXT_LIMIT = 20000
+const INLINE_LIMIT = 4000
 
 const cache = new Map<string, Root>()
 
 export function parseMarkdown(text: string): Root {
   let tree = cache.get(text)
+  if (!tree && text.length > TEXT_LIMIT) tree = { type: 'root', children: [{ type: 'paragraph', children: [{ type: 'text', value: text }] }] }
   if (!tree) {
     tree = fromMarkdown(text, { extensions: [gfm()], mdastExtensions: [gfmFromMarkdown()] })
     let cells = 0
@@ -24,6 +28,7 @@ export function parseMarkdown(text: string): Root {
 
 /** A single line, such as a title or a shortcut's name, as inline nodes. */
 export function parseInline(text: string): PhrasingContent[] {
+  if (text.length > INLINE_LIMIT) return [{ type: 'text', value: text }]
   const first = parseMarkdown(text).children[0]
   return first?.type === 'paragraph' ? first.children : [{ type: 'text', value: text }]
 }

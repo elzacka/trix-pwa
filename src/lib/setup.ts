@@ -42,6 +42,10 @@ export function defaultSetup(): Setup {
 /** Characters a colour can hold; the browser checks the value itself before using it. */
 const COLOR = /^[#\p{L}\p{N}\s(),.%/+-]{1,60}$/u
 
+// A colour must be one: var(), attr(), env() and keywords pass CSS.supports but defeat the contrast check.
+const INDIRECT = /\b(var|attr|env)\s*\(|^(inherit|initial|unset|revert|revert-layer|currentcolor)$/i
+const valid = (value: string) => COLOR.test(value) && !INDIRECT.test(value)
+
 /** «#fff / #000» → light and dark; one value serves both. The split ignores slashes inside brackets. */
 export function colorPair(value: string): Pair | null {
   let depth = 0
@@ -53,7 +57,7 @@ export function colorPair(value: string): Pair | null {
   }
   const [light, dark] = split < 0 ? [value, value] : [value.slice(0, split), value.slice(split + 1)]
   const pair = { light: light.trim(), dark: dark.trim() }
-  return COLOR.test(pair.light) && COLOR.test(pair.dark) ? pair : null
+  return valid(pair.light) && valid(pair.dark) ? pair : null
 }
 
 export const FONT = /^[\p{L}\p{N} _-]{1,60}$/u
@@ -115,7 +119,7 @@ export function parseSetup(text: string): Setup {
   if (texts !== undefined) {
     if (texts && typeof texts === 'object') {
       for (const [key, value] of Object.entries(texts)) {
-        if (key in TEXTS && key !== 'navn' && typeof value === 'string' && value.trim() && value.length <= 200) setup.texts[key as TextKey] = value.trim()
+        if (Object.hasOwn(TEXTS, key) && key !== 'navn' && typeof value === 'string' && value.trim() && value.length <= 200) setup.texts[key as TextKey] = value.trim()
         else problem(`tekster.${key}`)
       }
     } else problem('tekster')

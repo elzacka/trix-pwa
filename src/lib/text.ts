@@ -1,6 +1,7 @@
 // Plain text, slugs and sorting shared by the parsers and the views.
 
-const LINK = /\[([^\]]*)\]\(([^)\s]*)\)/g
+// Bounded, so a crafted run of `[a](` stays linear.
+const LINK = /\[([^\][]{0,500})\]\(([^()\s]{0,2048})\)/g
 
 /** Markdown inline markup removed: links become their label. */
 export function plain(text: string): string {

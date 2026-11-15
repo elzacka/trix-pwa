@@ -171,6 +171,19 @@ test('a file changed by another program shows without a reload', async ({ page }
   expect(errors).toEqual([])
 })
 
+test('deep nesting shows as text instead of breaking the entry (TRIX-SEC-03)', async ({ page }) => {
+  const errors = await start(page)
+  await page.getByRole('tab', { name: 'Oppslag' }).click()
+  await page.getByRole('button', { name: 'Flere valg' }).click()
+  await page.getByRole('button', { name: 'Endre innhold i Oppslag' }).click()
+  const editor = page.getByRole('textbox')
+  await editor.fill(`${await editor.inputValue()}\n### Dyp\nFørste linje\n\n${'> '.repeat(300)}bunn\n`)
+  await page.getByRole('button', { name: 'Lagre' }).click()
+  await page.getByRole('button', { name: /^Dyp/ }).click()
+  await expect(page.getByText('bunn')).toBeVisible()
+  expect(errors).toEqual([])
+})
+
 test('customize: name, tab order, options and a colour, saved to the files', async ({ page }) => {
   const errors = await start(page)
   await page.getByRole('button', { name: 'Flere valg' }).click()

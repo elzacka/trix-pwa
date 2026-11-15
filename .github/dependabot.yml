@@ -4,6 +4,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # A week's wait: a compromised release is usually pulled before then.
+    cooldown:
+      default-days: 7
     groups:
       dev-dependencies:
         dependency-type: development

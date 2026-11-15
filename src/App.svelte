@@ -117,6 +117,7 @@
           <li class="separator"><button type="button" onclick={() => run(() => app.backup())}>{app.t('eksporter')}</button></li>
           <li><button type="button" onclick={() => run(() => restoreInput?.click())}>{app.t('importer')}</button></li>
           <li><button type="button" onclick={() => run(() => app.switchFolder())}>{app.t('bytt mappe')}</button></li>
+          <li><a href="https://github.com/elzacka/trix-pwa/blob/main/BRUKERVEILEDNING.md" target="_blank" rel="noopener noreferrer">{app.t('hjelp')}</a></li>
           <li class="version separator">v{__VERSION__} | elzacka</li>
         </ul>
       </div>

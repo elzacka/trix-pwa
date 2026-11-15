@@ -30,5 +30,5 @@ alt dette i «Tilpass appen» i menyen.
 - tekster: Nøkkel: tekst. Ord i {klammer} fyller appen inn. Eksempel: søk: Søk i lista
   - Nøkler: søk, tøm søk, treff, ingen treff, tom, vis alt, merket, fjern merke, også, engelsk, tilbake,
     tilbake til, bli her, faner, meny, rediger, ny fane, oppsett, eksporter, importer, bytt mappe,
-    lagre, avbryt, forkast, endret utenfor, ny versjon, oppdater, snu kort
+    hjelp, lagre, avbryt, forkast, endret utenfor, ny versjon, oppdater, snu kort
 -->

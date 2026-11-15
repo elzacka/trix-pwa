@@ -45,5 +45,6 @@ A push to `main` runs [deploy.yml](.github/workflows/deploy.yml): audit,
 unit tests, browser tests, build, then GitHub Pages at the custom domain
 `trix.tazk.no` (repository setting; DNS at Domeneshop).
 
+User guide (nb, linked from the app's menu): [BRUKERVEILEDNING.md](BRUKERVEILEDNING.md).
 Privacy (nb): [PERSONVERN.md](PERSONVERN.md). Security:
 [SECURITY.md](SECURITY.md). Credits (nb): [TREDJEPART.md](TREDJEPART.md).

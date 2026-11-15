@@ -23,6 +23,7 @@ export const TEXTS = {
   eksporter: 'Lag sikkerhetskopi',
   importer: 'Hent sikkerhetskopi',
   'bytt mappe': 'Bytt mappe',
+  hjelp: 'Brukerveiledning',
   lagre: 'Lagre',
   avbryt: 'Avbryt',
   forkast: 'Forkast endringene',

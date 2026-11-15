@@ -140,6 +140,7 @@ test('no WCAG 2.2 AA violations on any tab, an open entry, the editor or the for
   await page.getByText('Mer om dette').click()
   await check('åpent oppslag')
   await page.getByRole('button', { name: 'Flere valg' }).click()
+  await expect(page.getByRole('link', { name: 'Brukerveiledning' })).toHaveAttribute('href', /BRUKERVEILEDNING\.md$/)
   await check('meny')
   await page.getByRole('button', { name: 'Endre innhold i Oppslag' }).click()
   await check('editor')

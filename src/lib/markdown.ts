@@ -15,12 +15,14 @@ const ROW_LIMIT = 2000
 /** Titles and shortcut names: short, and a tab may hold thousands. */
 export const INLINE_LIMIT = 300
 
+const cells = (row: string) => row.trim().replace(/^\|/, '').replace(/(?<!\\)\|$/, '').split(/(?<!\\)\|/).length
+
 const parseable = (text: string) =>
   text.length <= TEXT_LIMIT &&
   text.split(/\n[ \t]*\n/).every(block => {
     const lines = block.trim().split('\n')
     // Each table row and list item is parsed on its own, so their length counts line by line.
-    const table = lines.length > 1 && lines.every(l => l.trimStart().startsWith('|')) && /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/.test(lines[1])
+    const table = lines.length > 1 && lines.every(l => l.trimStart().startsWith('|')) && /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/.test(lines[1]) && cells(lines[0]) === cells(lines[1])
     const rows = table || lines.every(l => /^\s*([-*+]|\d{1,9}[.)])\s/.test(l))
     return rows ? lines.every(l => l.length <= ROW_LIMIT) : block.length <= BLOCK_LIMIT
   })

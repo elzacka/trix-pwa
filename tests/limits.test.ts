@@ -36,9 +36,11 @@ describe('limits', () => {
   it('lines that only look like rows or list items still count as one paragraph', () => {
     const fake = Array.from({ length: 200 }, () => '| ' + '*a'.repeat(400)).join('\n')
     expect(parseMarkdown(fake).children).toEqual([{ type: 'paragraph', children: [{ type: 'text', value: fake }] }])
+    const uneven = ['|a|b|', '|-|', ...Array.from({ length: 100 }, () => '| ' + '*a'.repeat(400))].join('\n')
+    expect(parseMarkdown(uneven).children[0]).toEqual({ type: 'paragraph', children: [{ type: 'text', value: uneven }] })
   })
   it('a shortcut tab full of markup shows its names as text', () => {
-    const rows = Array.from({ length: 400 }, (_, i) => `- ${'*a'.repeat(140)}${i} | F1`).join('\n')
+    const rows = Array.from({ length: 400 }, (_, i) => `- www.${'a'.repeat(280)}${i}.no | F1`).join('\n')
     expect(parseTab('H.md', `---\nmodul: hurtigtaster\n---\n${rows}\n`).tab!.markup).toBe(false)
     expect(parseTab('H.md', '---\nmodul: hurtigtaster\n---\n- **Lagre** | ctrl S\n').tab!.markup).toBe(true)
   })

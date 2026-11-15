@@ -29,6 +29,7 @@ alt dette i «Tilpass appen» i menyen.
   - størrelse: 12–24
 - tekster: Nøkkel: tekst. Ord i {klammer} fyller appen inn. Eksempel: søk: Søk i lista
   - Nøkler: søk, tøm søk, finn tast, trykk tast, treff, ingen treff, tom, vis alt, merket, fjern merke, også, engelsk, tilbake,
-    tilbake til, bli her, faner, meny, rediger, ny fane, oppsett, eksporter, importer, bytt mappe,
+    tilbake til, bli her, faner, meny, rediger, ny fane, rekkefølge, flytt opp, flytt ned,
+    ferdig, ikke flyttet, oppsett, eksporter, importer, bytt mappe,
     hjelp, lagre, avbryt, forkast, endret utenfor, ny versjon, oppdater, snu kort
 -->

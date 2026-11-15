@@ -10,6 +10,7 @@
   import Guides from './components/Guides.svelte'
   import Icon from './components/Icon.svelte'
   import Lookup from './components/Lookup.svelte'
+  import Move from './components/Move.svelte'
   import Shortcuts from './components/Shortcuts.svelte'
   import Start from './components/Start.svelte'
 
@@ -22,7 +23,8 @@
   const tab = $derived(app.tabs[app.current])
   const view = $derived(app.views[app.current])
   const reading = $derived(tab?.module === 'steg' && view?.reading != null)
-  const searchable = $derived(tab && has(tab, 'søk') && !reading)
+  const searchable = $derived(tab && has(tab, 'søk') && !reading && !app.moving)
+  const movable = $derived(tab && !has(tab, 'a–å') && (tab.module === 'hurtigtaster' ? tab.shortcuts : tab.groups).some(g => g.items.length))
   const results = $derived(
     !tab || !view || (!view.query.trim() && !view.tags.length) ? null : tab.module === 'hurtigtaster' ? count(shortcutGroups(tab, view, app.os)) : count(entryGroups(tab, view)),
   )
@@ -77,6 +79,12 @@
     document.getElementById('query')?.focus()
   }
 
+  async function startMoving() {
+    app.moving = true
+    await tick()
+    document.getElementById('done')?.focus()
+  }
+
   /** Esc closes the innermost thing that is open. */
   function keydown(event: KeyboardEvent) {
     if (app.phase !== 'ready' || app.editing || app.customizing || document.querySelector('dialog[open]')) return
@@ -92,7 +100,8 @@
       event.preventDefault()
       app.edit(tab.file)
     } else if (event.key === 'Escape' && view && !event.defaultPrevented) {
-      if (app.trail.length) app.back()
+      if (app.moving) app.moving = false
+      else if (app.trail.length) app.back()
       else if (view.reading) view.reading = null
       else if (view.open) view.open = null
       else if (view.tags.length || view.query) clearSearch()
@@ -129,6 +138,7 @@
       <div id="menu" popover bind:this={menu}>
         <ul>
           {#if tab}<li><button type="button" onclick={() => run(() => app.edit(tab.file))}>{app.t('rediger', { fane: tab.name })}</button></li>{/if}
+          {#if movable}<li><button type="button" onclick={() => run(() => startMoving())}>{app.t('rekkefølge')}</button></li>{/if}
           <li><button type="button" onclick={() => run(() => addDialog?.showModal())}>{app.t('ny fane')}</button></li>
           <li><button type="button" onclick={() => run(() => (app.customizing = true))}>{app.t('oppsett')}</button></li>
           <li class="separator"><button type="button" onclick={() => run(() => app.backup())}>{app.t('eksporter')}</button></li>
@@ -164,7 +174,13 @@
             {/if}
           </div>
         {/if}
-        {#if view.tags.length && !reading}
+        {#if app.moving}
+          <div class="tools moving-bar">
+            <span>{app.t('rekkefølge')}</span>
+            <button type="button" id="done" class="button primary" onclick={() => (app.moving = false)}>{app.t('ferdig')}</button>
+          </div>
+        {/if}
+        {#if view.tags.length && !reading && !app.moving}
           <div class="tools">
             <span>{app.t('merket', { antall: results ?? 0, emner: view.tags.map(t => `#${t}`).join(', ') })}</span>
             {#each view.tags as t (t)}
@@ -174,7 +190,8 @@
         {/if}
         <p class="sr-only" aria-live="polite">{capturing ? app.t('trykk tast') : results === null ? '' : app.t('treff', { antall: results })}</p>
         <div class="list">
-          {#if tab.module === 'oppslag'}<Lookup {tab} />
+          {#if app.moving}<Move {tab} />
+          {:else if tab.module === 'oppslag'}<Lookup {tab} />
           {:else if tab.module === 'kort'}<Cards {tab} />
           {:else if tab.module === 'steg'}<Guides {tab} />
           {:else}<Shortcuts {tab} />{/if}

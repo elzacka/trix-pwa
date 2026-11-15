@@ -60,6 +60,9 @@ Trix sier fra når en ny versjon er klar. Velg **Oppdater** for å ta den i bruk
 - **Endre innhold i …**: Endrer fila til fanen du står i. Øverst i fila
   står det hvordan du skriver grupper, oppslag, lister, bokser og lenker.
 - **Legg til fane**: Lager en ny fane fra modulen du velger.
+- **Endre rekkefølgen**: Flytter grupper og oppslag opp og ned med pilene.
+  Trix lagrer hver flytting med en gang. Valget finnes i faner som ikke
+  sorterer A–Å.
 - **Tilpass appen**: Endrer navnet på appen, rekkefølgen på fanene, valgene
   for hver fane, fargene, skriften og tekstene. Trix viser fargene med en
   gang og sier fra hvis teksten blir vanskelig å lese.

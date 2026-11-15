@@ -105,8 +105,8 @@
           <li>
             <div class="order-head">
               <span><strong>{tab.name}</strong> <span class="hint">{file}</span></span>
-              <button type="button" id="move-up-{i}" class="icon-button" disabled={i === 0} aria-label="Flytt {tab.name} opp" title="Flytt opp" onclick={() => move(i, -1)}><Icon name="up" /></button>
-              <button type="button" id="move-down-{i}" class="icon-button" disabled={i === draft.order.length - 1} aria-label="Flytt {tab.name} ned" title="Flytt ned" onclick={() => move(i, 1)}><Icon name="down" /></button>
+              <button type="button" id="move-up-{i}" class="icon-button" disabled={i === 0} aria-label={app.t('flytt opp', { del: tab.name })} title={app.t('flytt opp', { del: tab.name })} onclick={() => move(i, -1)}><Icon name="up" /></button>
+              <button type="button" id="move-down-{i}" class="icon-button" disabled={i === draft.order.length - 1} aria-label={app.t('flytt ned', { del: tab.name })} title={app.t('flytt ned', { del: tab.name })} onclick={() => move(i, 1)}><Icon name="down" /></button>
             </div>
             <details>
               <summary>Valg for {tab.name}</summary>

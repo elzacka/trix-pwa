@@ -42,6 +42,7 @@ class App {
   trail = $state<Mark[]>([])
   editing = $state.raw<Editing | null>(null)
   customizing = $state(false)
+  moving = $state(false)
   update = $state.raw<(() => void) | null>(null)
   readonly os = currentOs()
 
@@ -180,6 +181,7 @@ class App {
   select(index: number) {
     if (!this.tabs[index]) return
     this.current = index
+    this.moving = false
   }
 
   // Links: a web address goes to the browser; a place in the app leaves a mark to come back to.
@@ -275,6 +277,23 @@ class App {
     this.customizing = false
     await this.load()
     return true
+  }
+
+  /** Saves a move at once; the moved line, 1-based, or null when the file changed elsewhere and nothing moved. */
+  async move(file: string, change: (text: string) => { text: string; line: number }): Promise<number | null> {
+    const original = this.files.get(file)?.text
+    if (original === undefined) return null
+    const { text, line } = change(original)
+    try {
+      await this.folder!.write(file, text, original)
+    } catch (error) {
+      await this.load()
+      if (!(error instanceof Changed)) throw error
+      this.error = this.t('ikke flyttet')
+      return null
+    }
+    await this.load()
+    return line + 1
   }
 
   async addTab(name: string, module: Module): Promise<string | null> {

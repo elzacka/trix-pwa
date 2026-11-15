@@ -1,7 +1,7 @@
 // The setup's colours and font on :root through CSSOM: the CSP allows no inline style.
 
 import { copyTheme } from './pip.svelte'
-import { COLORS, type ColorName, type Setup } from './setup'
+import { COLORS, type ColorName, type Mode, type Setup } from './setup'
 
 type Rgb = [number, number, number]
 
@@ -37,6 +37,8 @@ export function hex(value: string): string {
 const TOKEN: Record<ColorName, string> = {
   bakgrunn: 'bg', flate: 'surface', linje: 'line', tekst: 'text', dempet: 'muted', aksent: 'accent', lenke: 'link', forside: 'front', bakside: 'back',
 }
+
+const SCHEME: Record<Mode, string> = { lys: 'light', mørk: 'dark', system: 'light dark' }
 
 /** Text over each fill: white or black, whichever reads better. */
 const ON: ColorName[] = ['aksent', 'forside', 'bakside']
@@ -74,6 +76,12 @@ export function applyTheme(setup: Setup): string[] {
   }
   if (setup.font) root.style.setProperty('--font', `"${setup.font}", system-ui, sans-serif`)
   root.style.setProperty('--size', `${setup.size / 16}rem`)
+  root.style.colorScheme = SCHEME[setup.mode]
+  // The browser's title bar follows the chosen mode; as the device, each meta keeps its media query.
+  for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
+    const own = meta.media.includes('dark') ? 'dark' : 'light'
+    meta.content = setup.colors.bakgrunn[setup.mode === 'system' ? own : setup.mode === 'mørk' ? 'dark' : 'light']
+  }
   document.title = setup.name
   copyTheme()
   return problems

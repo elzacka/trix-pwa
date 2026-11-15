@@ -2,7 +2,7 @@
 
 import { parseDocument, type Document } from 'yaml'
 import { OPTIONS, type Module, type Option, type Tab } from './content'
-import { COLORS, type ColorName, type Pair, type Setup } from './setup'
+import { COLORS, type ColorName, type Mode, type Pair, type Setup } from './setup'
 import { frontmatter } from './text'
 import { TEXTS, type TextKey } from './texts'
 
@@ -19,6 +19,7 @@ export interface Draft {
   name: string
   order: string[]
   colors: Record<ColorName, Pair>
+  mode: Mode
   font: string
   size: number
   texts: Record<TextKey, string>
@@ -35,6 +36,7 @@ export function draftOf(setup: Setup, tabs: Tab[], hex: (color: string) => strin
     name: setup.name,
     order: tabs.map(t => t.file),
     colors,
+    mode: setup.mode,
     font: setup.font ?? '',
     size: setup.size,
     texts: { ...setup.texts },
@@ -52,7 +54,7 @@ export function previewOf(setup: Setup, before: Draft, after: Draft): Setup {
   const texts = { ...setup.texts }
   for (const key of Object.keys(TEXTS) as TextKey[]) texts[key] = after.texts[key].trim() || TEXTS[key]
   texts.navn = after.name.trim() || setup.name
-  return { ...setup, name: texts.navn, colors, font: after.font.trim() || null, size: after.size, texts }
+  return { ...setup, name: texts.navn, colors, mode: after.mode, font: after.font.trim() || null, size: after.size, texts }
 }
 
 /** The file with its frontmatter changed by `edit`; a file without one gets it. */
@@ -71,6 +73,7 @@ export function writeSetup(text: string, before: Draft, after: Draft): string {
     for (const name of COLORS) {
       if (!same(after.colors[name], before.colors[name])) doc.setIn(['farger', name], pairText(after.colors[name]))
     }
+    if (after.mode !== before.mode) doc.set('modus', after.mode)
     if (after.font !== before.font) after.font.trim() ? doc.setIn(['skrift', 'tekst'], after.font.trim()) : doc.deleteIn(['skrift', 'tekst'])
     if (after.size !== before.size) doc.setIn(['skrift', 'størrelse'], after.size)
     for (const key of Object.keys(TEXTS) as TextKey[]) {

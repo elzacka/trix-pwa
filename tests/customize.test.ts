@@ -23,6 +23,12 @@ describe('customize', () => {
     expect(text).toContain('# Oppsett\n\n<!--')
     expect(text).not.toMatch(/^  tekst:/m)
   })
+  it('writes the colour mode', () => {
+    const before = draft()
+    const after = structuredClone(before)
+    after.mode = 'mørk'
+    expect(parseSetup(writeSetup(SETUP_TEMPLATE, before, after)).mode).toBe('mørk')
+  })
   it('an emptied text goes back to the default', () => {
     const before = draft()
     before.texts.søk = 'Finn'

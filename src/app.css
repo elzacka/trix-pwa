@@ -1,6 +1,6 @@
 /* Colours: Oppsett.md sets --<token>-light/-dark on :root (theme.ts); these are the defaults. */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --bg-light: #f8fafc; --bg-dark: #111418;
   --surface-light: #ffffff; --surface-dark: #1a1e23;
   --line-light: #e2e8f0; --line-dark: #2b3138;
@@ -49,10 +49,21 @@ body {
 
 h1, h2, h3, h4, h5, h6 { line-height: 1.25; text-wrap: balance; }
 p { margin: 0 0 0.75em; text-wrap: pretty; }
+/* Disclosures: a quiet chevron before the text, as in a tree, instead of the browser's triangle */
+summary { list-style: none; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: ""; flex: none; width: 0.45rem; height: 0.45rem; margin-inline: 0.125rem 0.25rem;
+  border: solid var(--muted); border-width: 0 1.5px 1.5px 0; transform: rotate(-45deg);
+}
+details[open] > summary::before { transform: translateY(-25%) rotate(45deg); }
+:dir(rtl) summary::before { transform: rotate(135deg); }
 a { color: var(--link); text-underline-offset: 0.15em; }
-button, input, textarea { font: inherit; color: inherit; }
+button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
-:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Icon buttons: the ring sits on the button's own edge, not around it. */
+.icon-button:focus-visible { outline-offset: -2px; }
 
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -79,7 +90,6 @@ button { cursor: pointer; }
   padding: max(0.5rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right)) 0.5rem max(0.75rem, env(safe-area-inset-left));
   border-bottom: 1px solid var(--line); background: var(--surface);
 }
-.logo { width: 1.75rem; height: 1.75rem; flex: none; }
 .single { font-size: 1.1rem; margin: 0; flex: 1; }
 .tabs { display: flex; gap: 0.25rem; flex: 1; overflow-x: auto; scrollbar-width: none; }
 .tabs [role="tab"] {
@@ -100,12 +110,9 @@ button { cursor: pointer; }
 #menu a { color: inherit; text-decoration: none; }
 #menu button:hover, #menu a:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
 #menu .separator { border-top: 1px solid var(--line); margin-top: 0.25rem; padding-top: 0.25rem; }
-#menu summary::-webkit-details-marker { display: none; }
-#menu summary { list-style: none; display: flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0.5rem 0.75rem; border-radius: 0.5rem; cursor: pointer; }
+#menu summary { min-height: 2.75rem; padding: 0.5rem 0.75rem; border-radius: 0.5rem; }
 #menu summary:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
-#menu summary::after { content: ""; margin-inline-start: auto; width: 0.5rem; height: 0.5rem; border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg); }
-#menu details[open] > summary::after { transform: rotate(-135deg); }
-#menu .submenu ul { padding-inline-start: 0.75rem; }
+#menu .submenu ul { padding-inline-start: 1.25rem; }
 #menu .version { padding: 0.5rem 0.75rem; color: var(--muted); font-size: 0.875em; }
 
 /* Panel */
@@ -120,7 +127,7 @@ button { cursor: pointer; }
   padding-inline: 0.75rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--muted);
 }
 .search input { flex: 1; min-height: 2.75rem; border: 0; background: transparent; color: var(--text); outline: none; }
-.search:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+.search:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
 .search input::-webkit-search-cancel-button { display: none; }
 
 .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; max-width: 60rem; margin: 0 auto var(--gap); color: var(--muted); }
@@ -172,7 +179,7 @@ pre { overflow-x: auto; padding: 0.75rem; border-radius: 0.5rem; background: var
 blockquote { margin: 0 0 0.75em; padding-inline-start: 0.75rem; border-inline-start: 3px solid var(--line); color: var(--muted); }
 
 .box { margin: 0.5rem 0; }
-.box summary { cursor: pointer; font-weight: 600; min-height: 2.75rem; display: flex; align-items: center; }
+.box summary { font-weight: 600; min-height: 2.75rem; }
 .card > .box { padding: 0 1rem; }
 
 /* Hurtigtaster */
@@ -266,7 +273,7 @@ kbd {
 .order-head { display: flex; align-items: center; gap: 0.25rem; }
 .order-head > span { flex: 1; }
 .order-head .icon-button:disabled { visibility: hidden; }
-.customize summary { padding: 0.6rem 0; cursor: pointer; }
+.customize summary { padding: 0.6rem 0; min-height: 2.75rem; }
 .order details { padding-bottom: 0.5rem; }
 .order fieldset { margin: 0; }
 .colors { display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem 1rem; align-items: center; margin-top: 0.75rem; }
@@ -284,7 +291,7 @@ kbd {
 .filter label { position: relative; min-height: 2.75rem; padding-inline: 1rem; cursor: pointer; }
 .filter input { position: absolute; opacity: 0; pointer-events: none; }
 .filter label:has(:checked) { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-.filter label:has(:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+.filter label:has(:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 .pack h2 { scroll-margin-top: 1rem; }
 .pack-actions, .template-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
 .templates { list-style: none; padding: 0; margin: 0.75rem 0 0; }
@@ -324,5 +331,6 @@ legend { font-weight: 600; margin-bottom: 0.25rem; }
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 @media (forced-colors: active) {
+  .badge { forced-color-adjust: none; background: Mark; box-shadow: 0 0 0 1px CanvasText; }
   .tabs [role="tab"][aria-selected="true"], .chip, .tag[aria-pressed="true"], .icon-button[aria-pressed="true"], .filter label:has(:checked) { border: 2px solid CanvasText; }
 }

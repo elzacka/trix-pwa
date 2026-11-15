@@ -25,7 +25,7 @@
   {:else}
     <h2 id="storage-title">{app.t('lagret i nettleseren')}</h2>
     <p>Nettleseren din kan ikke lagre filer i en mappe du velger. Filene forsvinner hvis du sletter nettleserdata for denne siden.</p>
-    <p>Lag en sikkerhetskopi med jevne mellomrom. Du finner den også i menyen.</p>
+    <p>Lag en sikkerhetskopi med jevne mellomrom. Du kan også lage den fra menyen.</p>
     <div class="actions">
       <button type="button" class="button" onclick={() => run(() => app.decide())}>{app.t('forstått')}</button>
       <button type="button" class="button primary" onclick={() => run(async () => { await app.backup(); await app.decide() })}>{app.t('eksporter')}</button>

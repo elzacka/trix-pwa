@@ -69,7 +69,7 @@ du vil ha Trix tilbake der det var.
 
 ## Endre innholdet
 
-Menyen øverst til høyre har to deler:
+Menyen øverst til høyre:
 
 - **Databehandling**:
   - **Endre innhold i …**: Endrer fila til fanen du står i. Øverst i fila
@@ -79,9 +79,10 @@ Menyen øverst til høyre har to deler:
     fil til fanen. Trix viser resultatet i redigeringen, og fila endres
     først når du velger **Lagre**.
   - Valgene for filene, se [Ta vare på filene](#ta-vare-på-filene).
-- **Tilpass appen**: Endrer navnet på appen, fanene, fargene, skriften og
-  tekstene. Under **Faner** endrer du rekkefølgen og valgene for hver fane,
-  og der legger du til faner:
+- **Tilpass appen**: Endrer navnet på appen, fanene, fargemodusen (lys,
+  mørk eller som enheten), fargene, skriften og tekstene. Appen er lys hvis
+  du ikke velger noe annet. Under **Faner** endrer du rekkefølgen og
+  valgene for hver fane, og der legger du til faner:
   - **Legg til fane**: Lager en fane med eksempler fra modulen du velger.
   - **Velg fra malbiblioteket**: Ferdige maler og malpakker etter tema, for
     eksempel hurtigtastene i Chrome og Edge eller ordlister. Velg
@@ -120,7 +121,8 @@ Under **Databehandling** i menyen:
   zip-fila.
 - **Velg mappe** og **Bytt mappe**: Velger en annen mappe for filene. Fra
   nettleseren tar Trix med filene til mappa. En fil som allerede finnes i
-  mappa, blir ikke endret. Finnes i Chrome og Edge.
+  mappa, blir ikke endret. Da laster Trix ned versjonen fra nettleseren som
+  zip. Finnes i Chrome og Edge på datamaskin og i Chrome på Android.
 
 Filene i nettleseren forsvinner hvis du sletter nettleserdata for Trix. Lag
 en sikkerhetskopi med jevne mellomrom hvis du bruker Safari eller Firefox.

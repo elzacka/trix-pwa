@@ -29,6 +29,10 @@
   let capturing = $state(false)
 
   const tab = $derived(app.tabs[app.current])
+  // The folder picker needs the main window, so the floating window leaves the question to it.
+  const waiting = $derived(app.pending && !pip.window)
+  const storageChoice = canPickFolder() ? 'velg lagring' : 'lagret i nettleseren'
+  const menuLabel = $derived(waiting ? `${app.t('meny')}: ${app.t(storageChoice)}` : app.t('meny'))
   const view = $derived(app.views[app.current])
   const reading = $derived(tab?.module === 'steg' && view?.reading != null)
   const searchable = $derived(tab && has(tab, 'søk') && !reading && !app.moving)
@@ -210,6 +214,10 @@
   })
 </script>
 
+{#snippet reorder()}
+  <button type="button" class="icon-button" aria-pressed={app.moving} aria-label={app.t('rekkefølge')} title={app.t('rekkefølge')} onclick={() => (app.moving ? (app.moving = false) : startMoving())}><Icon name="reorder" /></button>
+{/snippet}
+
 <svelte:window onhashchange={hashChanged} onkeydown={keydown} onfocus={reload} ondragover={dragover} ondragleave={dragleave} ondrop={drop} />
 <svelte:document onvisibilitychange={() => document.visibilityState === 'visible' && reload()} />
 
@@ -224,7 +232,6 @@
     {#key app.library}<Library />{/key}
   {:else}
     <header class="bar">
-      <img src="{import.meta.env.BASE_URL}favicon.svg" alt="" class="logo" />
       {#if app.tabs.length > 1}
         <div class="tabs" role="tablist" aria-label={app.t('faner')} tabindex="-1" onkeydown={tabKeys}>
           {#each app.tabs as t, i (t.file)}
@@ -234,14 +241,14 @@
       {:else}
         <h1 class="single">{tab?.name ?? app.setup.name}</h1>
       {/if}
-      <button type="button" class="icon-button more" popovertarget="menu" aria-label={app.pending ? app.t('meny varsel') : app.t('meny')} title={app.pending ? app.t('meny varsel') : app.t('meny')}><Icon name="more" />{#if app.pending}<span class="badge"></span>{/if}</button>
-      <div id="menu" popover bind:this={menu}>
+      <button type="button" class="icon-button more" popovertarget="menu" aria-label={menuLabel} title={menuLabel}><Icon name="more" />{#if waiting}<span class="badge"></span>{/if}</button>
+      <div id="menu" popover bind:this={menu} ontoggle={e => e.newState === 'closed' && menu?.querySelectorAll('details').forEach(d => (d.open = false))}>
         <ul>
           <li>
-            <details class="submenu" open={app.pending}>
-              <summary>{#if app.pending}<span class="badge"></span>{/if}{app.t('data')}</summary>
+            <details class="submenu">
+              <summary>{#if waiting}<span class="badge"></span>{/if}{app.t('data')}</summary>
               <ul>
-                {#if app.pending}<li class="attention"><button type="button" onclick={() => run(() => storageDialog?.showModal())}><span class="badge"></span>{app.t(canPickFolder() ? 'velg lagring' : 'lagret i nettleseren')}</button></li>{/if}
+                {#if waiting}<li class="attention"><button type="button" onclick={() => run(() => storageDialog?.showModal())}><span class="badge"></span>{app.t(storageChoice)}</button></li>{/if}
                 {#if tab}<li><button type="button" onclick={() => run(() => app.edit(tab.file))}>{app.t('rediger', { fane: tab.name })}</button></li>{/if}
                 {#if tab}<li><button type="button" onclick={() => run(() => importInput?.click())}>{app.t('hent fil')}</button></li>{/if}
                 {#if !app.pending && canPickFolder() && !pip.window}<li><button type="button" onclick={() => run(pick)}>{app.t(app.kind === 'mappe' ? 'bytt mappe' : 'velg mappe')}</button></li>{/if}
@@ -283,10 +290,10 @@
               <button type="button" class="icon-button" aria-pressed={capturing} aria-label={app.t('finn tast')} title={app.t('finn tast')}
                 onclick={() => (capturing = !capturing)} onblur={() => (capturing = false)}><Icon name="keyboard" /></button>
             {/if}
-            {#if movable}<button type="button" class="icon-button" aria-pressed={app.moving} aria-label={app.t('rekkefølge')} title={app.t('rekkefølge')} onclick={() => (app.moving ? (app.moving = false) : startMoving())}><Icon name="reorder" /></button>{/if}
+            {#if movable}{@render reorder()}{/if}
           </div>
         {:else if movable}
-          <div class="tools">{#if movable}<button type="button" class="icon-button" aria-pressed={app.moving} aria-label={app.t('rekkefølge')} title={app.t('rekkefølge')} onclick={() => (app.moving ? (app.moving = false) : startMoving())}><Icon name="reorder" /></button>{/if}</div>
+          <div class="tools">{@render reorder()}</div>
         {/if}
         {#if app.moving}
           <div class="tools moving-bar">

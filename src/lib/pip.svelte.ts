@@ -11,6 +11,17 @@ export const pip = $state<{ window: Window | null }>({ window: null })
 /** The document the app is shown in. */
 export const doc = () => pip.window?.document ?? document
 
+// Focus the app moves itself shows a ring only after keys: a click, then a ring in a new window, reads as noise.
+let keyboard = false
+export function trackInput(win: Window) {
+  win.addEventListener('keydown', () => (keyboard = true), true)
+  win.addEventListener('pointerdown', () => (keyboard = false), true)
+}
+if (typeof window !== 'undefined') trackInput(window)
+
+/** Focus moved by the app, with a ring only for keyboard users. */
+export const focusQuietly = (element: HTMLElement | null | undefined) => element?.focus({ focusVisible: keyboard } as FocusOptions)
+
 /** Copies the theme set on the main document's root. CSSOM, so the CSP allows it. */
 export function copyTheme() {
   const target = pip.window?.document
@@ -22,15 +33,18 @@ export function copyTheme() {
 /** Focus back where it was if that is still shown, else on the menu button. */
 function refocus(root: HTMLElement, was: Element | null) {
   const place = was instanceof HTMLElement && was !== root && root.contains(was) && was.checkVisibility() ? was : root.querySelector<HTMLElement>('.more')
-  place?.focus()
+  focusQuietly(place)
 }
 
 /** Moves the app's root into a new floating window; it moves back when that window closes. */
 export async function float(root: HTMLElement) {
   if (!api || pip.window) return
   const win = await api.requestWindow({ width: 420, height: 640 })
+  trackInput(win)
   const target = win.document
   target.documentElement.lang = document.documentElement.lang
+  // The window's title bar shows the app's icon, as the browser tab does.
+  target.head.append(Object.assign(target.createElement('link'), { rel: 'icon', href: `${import.meta.env.BASE_URL}favicon.svg`, type: 'image/svg+xml' }))
   // Constructed sheets, not copied <style> or <link> elements: same rules, nothing the CSP has to allow.
   target.adoptedStyleSheets = [...document.styleSheets].map(sheet => {
     const copy = new (win as unknown as typeof globalThis).CSSStyleSheet({ baseURL: sheet.href ?? location.href })

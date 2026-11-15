@@ -29,7 +29,7 @@
 
   const dirty = $derived(JSON.stringify(draft) !== JSON.stringify(before))
 
-  // A tab added from here, or a file changed elsewhere, shows in the form while it holds no changes.
+  // A tab added from here shows in the form while it holds no changes.
   $effect(() => {
     const fresh = draftOf(app.setup, app.tabs, hex)
     if (untrack(() => !dirty)) {
@@ -176,6 +176,16 @@
       <div aria-live="polite">
         {#if warnings.length}<div class="problems">{#each warnings as warning (warning)}<p>{warning}</p>{/each}</div>{/if}
       </div>
+    </section>
+
+    <section aria-labelledby="c-mode">
+      <h2 id="c-mode">Fargemodus</h2>
+      <label for="mode" class="label">Lys eller mørk</label>
+      <select id="mode" class="field" bind:value={draft.mode}>
+        <option value="lys">Lys</option>
+        <option value="mørk">Mørk</option>
+        <option value="system">Som enheten</option>
+      </select>
     </section>
 
     <section aria-labelledby="c-font">

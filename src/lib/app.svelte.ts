@@ -5,7 +5,7 @@ import { parseTab, type Module, type Tab } from './content'
 import { currentOs } from './keys'
 import { fileText, type LibraryTemplate } from './library'
 import { linkKind } from './markdown'
-import { doc } from './pip.svelte'
+import { doc, focusQuietly } from './pip.svelte'
 import { defaultSetup, parseSetup, SETUP_FILE, type Setup } from './setup'
 import {
   browserFolder, Changed, Folder, loadFolder, permission, pickFolder, saveFolder, watch, type FileText, type Kind, type Saved,
@@ -15,7 +15,7 @@ import { fill, isFileName, plain } from './text'
 import type { TextKey } from './texts'
 import { applyTheme } from './theme'
 import { emptyView, findAnchor, type View } from './view'
-import { makeBackup, readBackup, download } from './backup'
+import { makeBackup, readBackup, download, zipFiles } from './backup'
 import { importable, importText, mergeContent, replaceContent } from './import'
 import { setupChanged, tabChanged, writeSetup, writeTab, type Draft } from './customize'
 
@@ -95,7 +95,8 @@ class App {
       await this.open(this.saved)
     } catch (error) {
       if ((error as Error).name === 'AbortError') return
-      // Safari refuses its private folder in private browsing, with an unhelpful error.
+      // Safari refuses its private folder in private browsing, with an unhelpful error; the start page says why.
+      if (kind === 'nettleser') this.phase = 'start'
       this.error = kind === 'nettleser' ? 'Nettleseren lar ikke Trix lagre filer. Det skjer blant annet i privat nettlesing. Åpne Trix i et vanlig vindu og prøv på nytt.' : String(error)
     }
   }
@@ -114,22 +115,27 @@ class App {
     this.pending = false
   }
 
-  /** From a button: a folder the user picks. Files in the browser's storage go along where the folder lacks them; returns the names it already had. */
+  /** From a button: the picked folder gets the browser's files. It keeps its own versions; the browser's come as a zip. */
   async moveToFolder(): Promise<string[]> {
     const dir = await pickFolder()
-    const kept: string[] = []
+    const zipped = new Map<string, string>()
     if (this.folder && this.kind === 'nettleser') {
       const target = new Folder(dir, 'mappe')
+      const hasTabs = (await target.list()).some(name => name !== SETUP_FILE)
+      const example = (name: string) => (name === SETUP_FILE ? SETUP_TEMPLATE : STARTER[name] && template(STARTER[name], name.replace(/\.md$/, '')))
       for (const name of await this.folder.list()) {
-        if (await target.exists(name)) kept.push(name)
-        else await target.write(name, await this.folder.text(name), null)
+        const text = await this.folder.text(name)
+        if (!(await target.exists(name))) {
+          if (!(hasTabs && text === example(name))) await target.write(name, text, null)
+        } else if ((await target.text(name)) !== text && text !== example(name)) zipped.set(name, text)
       }
+      if (zipped.size) download(zipFiles(zipped), 'trix-data-fra-nettleseren.zip')
     }
     this.trail = []
     this.saved = { dir, kind: 'mappe', decided: true }
     await saveFolder(this.saved)
     await this.open(this.saved)
-    return kept
+    return [...zipped.keys()]
   }
 
   private async open(saved: Saved) {
@@ -374,7 +380,7 @@ class App {
   async focusBar() {
     await tick()
     if (this.library || this.customizing || this.editing) return
-    ;(doc().getElementById(`tab-${this.current}`) ?? doc().querySelector<HTMLElement>('.more'))?.focus()
+    focusQuietly(doc().getElementById(`tab-${this.current}`) ?? doc().querySelector<HTMLElement>('.more'))
   }
 
   /** New tabs from the library, each under a free name; the first one is selected. */

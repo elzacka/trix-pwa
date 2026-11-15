@@ -36,22 +36,27 @@ test('first start makes one tab per module, and they survive a reload', async ({
 
 test('the app opens at once; the menu asks where the files live, and moving keeps the changes', async ({ page }) => {
   const errors = await start(page)
-  const menu = page.getByRole('button', { name: 'Flere valg, ett valg venter på deg' })
+  const menu = page.getByRole('button', { name: /^Flere valg: / })
   await expect(menu).toBeVisible()
   const folder = await page.evaluate(() => 'showDirectoryPicker' in window)
   if (!folder) {
     await menu.click()
-    await page.getByRole('button', { name: 'Filene ligger i nettleseren' }).click()
+    await page.locator('#menu summary').click()
+    await page.getByRole('button', { name: 'Filene ligger i nettleseren', exact: true }).click()
     await page.getByRole('dialog').getByRole('button', { name: 'Forstått' }).click()
   } else {
     // A change made before moving goes along.
-    await page.getByRole('button', { name: 'Flere valg, ett valg venter på deg' }).click()
+    await page.getByRole('button', { name: /^Flere valg: / }).click()
+    await page.locator('#menu summary').click()
     await page.getByRole('button', { name: 'Endre innhold i Hurtigtaster' }).click()
     const editor = page.getByRole('textbox')
     await editor.fill((await editor.inputValue()).replace('- Søk | ctrl F | ⌘F', '- Finn noe | ctrl F | ⌘F'))
     await page.getByRole('button', { name: 'Lagre' }).click()
     await menu.click()
-    await page.getByRole('button', { name: 'Velg hvor filene skal ligge' }).click()
+    // «Databehandling» is collapsed, with the dot on it.
+    await expect(page.getByRole('button', { name: 'Velg hvor filene skal ligge', exact: true })).toBeHidden()
+    await page.locator('#menu summary').click()
+    await page.getByRole('button', { name: 'Velg hvor filene skal ligge', exact: true }).click()
     await page.getByRole('dialog').getByRole('button', { name: 'Velg mappe' }).click()
     await expect(page.getByRole('button', { name: 'Flere valg', exact: true })).toBeVisible()
     await expect(page.getByText('Finn noe')).toBeVisible()
@@ -69,6 +74,16 @@ test('the app opens at once; the menu asks where the files live, and moving keep
   await expect(page.getByRole('tab', { name: 'Oppslag' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Flere valg', exact: true })).toBeVisible()
   expect(errors).toEqual([])
+})
+
+test('a browser that refuses its storage says why instead of a blank page', async ({ browser, browserName }) => {
+  test.skip(browserName !== 'webkit', 'Only WebKit refuses its storage in a temporary profile, as in private browsing')
+  const context = await browser.newContext()
+  const page = await context.newPage()
+  await page.goto('./')
+  await expect(page.getByRole('alert')).toContainText('privat nettlesing')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await context.close()
 })
 
 test('search, open an entry, tags', async ({ page }) => {
@@ -108,6 +123,7 @@ test('edit and save a file, then add a tab', async ({ page }) => {
   const errors = await start(page)
   await page.getByRole('tab', { name: 'Hurtigtaster' }).click()
   await page.getByRole('button', { name: 'Flere valg' }).click()
+  await page.locator('#menu summary').click()
   await page.getByRole('button', { name: 'Endre innhold i Hurtigtaster' }).click()
   const editor = page.getByRole('textbox')
   await editor.fill((await editor.inputValue()).replace('- Søk | ctrl F | ⌘F', '- Finn noe | ctrl F | ⌘F'))
@@ -168,6 +184,7 @@ test('import a file into a tab through the editor', async ({ page }) => {
   const choose = async (name: string, text: string) => {
     await page.getByRole('button', { name: 'Flere valg' }).click()
     const chooser = page.waitForEvent('filechooser')
+    await page.locator('#menu summary').click()
     await page.getByRole('button', { name: 'Hent innhold fra fil' }).click()
     await (await chooser).setFiles({ name, mimeType: 'text/plain', buffer: Buffer.from(text) })
   }
@@ -223,6 +240,12 @@ test('the app floats above other windows and comes back as it was', async ({ pag
   await expect(pip.getByRole('tab', { name: 'Kort' })).toHaveAttribute('aria-selected', 'true')
   const background = (p: Page) => p.evaluate(() => getComputedStyle(document.body).backgroundColor)
   expect(await background(pip)).not.toBe('rgba(0, 0, 0, 0)')
+  // Light unless the user chooses dark, also in the floating window on a dark device.
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await pip.emulateMedia({ colorScheme: 'dark' })
+  expect(await background(pip)).toBe('rgb(248, 250, 252)')
+  // The folder picker needs the main window: no dot here.
+  await expect(pip.locator('.badge')).toHaveCount(0)
   expect(await pip.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--size'))).not.toBe('')
   // Clicks, keys and links work in the floating window.
   await pip.getByRole('tab', { name: 'Oppslag' }).click()
@@ -236,11 +259,13 @@ test('the app floats above other windows and comes back as it was', async ({ pag
   // Backup and restore from the floating window; the question opens there, not behind it.
   await pip.getByRole('button', { name: 'Flere valg' }).click()
   const saved = page.waitForEvent('download')
+  await pip.locator('#menu summary').click()
   await pip.getByRole('button', { name: 'Lag sikkerhetskopi' }).click()
   const zip = await (await saved).path()
   await pip.getByRole('button', { name: 'Flere valg' }).click()
   const chooser = pip.waitForEvent('filechooser')
   pip.once('dialog', dialog => dialog.accept())
+  await pip.locator('#menu summary').click()
   await pip.getByRole('button', { name: 'Hent sikkerhetskopi' }).click()
   await (await chooser).setFiles(zip)
   await expect(pip.getByText(/Hentet \d+ filer fra sikkerhetskopien/)).toBeVisible()
@@ -314,6 +339,7 @@ test('deep nesting shows as text instead of breaking the entry (TRIX-SEC-03)', a
   const errors = await start(page)
   await page.getByRole('tab', { name: 'Oppslag' }).click()
   await page.getByRole('button', { name: 'Flere valg' }).click()
+  await page.locator('#menu summary').click()
   await page.getByRole('button', { name: 'Endre innhold i Oppslag' }).click()
   const editor = page.getByRole('textbox')
   await editor.fill(`${await editor.inputValue()}\n### Dyp\nFørste linje\n\n${'> '.repeat(300)}bunn\n`)
@@ -364,14 +390,16 @@ test('no WCAG 2.2 AA violations on any tab, an open entry, the editor or the for
     await page.getByRole('tab', { name }).click()
     await check(name)
   }
-  await page.emulateMedia({ colorScheme: 'dark' })
+  // Dark is a choice in «Tilpass appen»; here set straight on the page.
+  const scheme = (value: string) => page.evaluate(v => (document.documentElement.style.colorScheme = v), value)
+  await scheme('dark')
   for (const name of ['Hurtigtaster', 'Kort']) {
     await page.getByRole('tab', { name }).click()
     await check(`${name}, mørk`)
   }
   await page.getByRole('button', { name: /Snu kortet: Spørsmål/ }).click()
   await check('bakside, mørk')
-  await page.emulateMedia({ colorScheme: 'light' })
+  await scheme('light')
   await page.getByRole('tab', { name: 'Oppslag' }).click()
   await page.getByRole('button', { name: /Oppslag med lukket boks/ }).click()
   await page.getByText('Mer om dette').click()
@@ -383,6 +411,7 @@ test('no WCAG 2.2 AA violations on any tab, an open entry, the editor or the for
   await page.getByRole('button', { name: 'Flere valg' }).click()
   await expect(page.getByRole('link', { name: 'Brukerveiledning' })).toHaveAttribute('href', /BRUKERVEILEDNING\.md$/)
   await check('meny')
+  await page.locator('#menu summary').click()
   await page.getByRole('button', { name: 'Endre innhold i Hurtigtaster' }).click()
   await check('editor')
   await page.getByRole('button', { name: 'Avbryt' }).click()
@@ -396,6 +425,6 @@ test('no WCAG 2.2 AA violations on any tab, an open entry, the editor or the for
   await page.getByRole('button', { name: 'Tilpass appen' }).click()
   for (const summary of await page.locator('summary').all()) await summary.click()
   await check('tilpass')
-  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.getByLabel('Lys eller mørk').selectOption('mørk')
   await check('tilpass, mørk')
 })

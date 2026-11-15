@@ -25,10 +25,15 @@ export const DEFAULT_COLORS: Record<ColorName, Pair> = {
 
 export const FONT_SIZE = [12, 24] as const
 
+/** Light, dark, or as the device: light unless the user chooses otherwise. */
+export const MODES = ['lys', 'mørk', 'system'] as const
+export type Mode = (typeof MODES)[number]
+
 export interface Setup {
   name: string
   order: string[]
   colors: Record<ColorName, Pair>
+  mode: Mode
   font: string | null
   size: number
   texts: Record<TextKey, string>
@@ -36,7 +41,7 @@ export interface Setup {
 }
 
 export function defaultSetup(): Setup {
-  return { name: TEXTS.navn, order: [], colors: structuredClone(DEFAULT_COLORS), font: null, size: 16, texts: { ...TEXTS }, problems: [] }
+  return { name: TEXTS.navn, order: [], colors: structuredClone(DEFAULT_COLORS), mode: 'lys', font: null, size: 16, texts: { ...TEXTS }, problems: [] }
 }
 
 /** Characters a colour can hold; the browser checks the value itself before using it. */
@@ -103,6 +108,8 @@ export function parseSetup(text: string): Setup {
       }
     } else problem('farger')
   }
+
+  if (data.modus !== undefined) (MODES as readonly unknown[]).includes(data.modus) ? (setup.mode = data.modus as Mode) : problem('modus')
 
   const skrift = data.skrift as Record<string, unknown> | undefined
   if (skrift !== undefined) {

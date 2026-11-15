@@ -16,6 +16,13 @@ describe('setup', () => {
     expect(setup.colors.aksent).toEqual({ light: 'navy', dark: 'navy' })
     expect(setup.problems).toEqual(['Oppsett.md, linje 4: «skrift.størrelse» har en ugyldig verdi og blir ikke brukt'])
   })
+  it('the app is light unless the setup says otherwise', () => {
+    expect(defaultSetup().mode).toBe('lys')
+    expect(parseSetup('---\nmodus: mørk\n---\n').mode).toBe('mørk')
+    const bad = parseSetup('---\nmodus: blå\n---\n')
+    expect(bad.mode).toBe('lys')
+    expect(bad.problems[0]).toContain('«modus»')
+  })
   it('the template is valid and orders the starter tabs', () => {
     const setup = parseSetup(SETUP_TEMPLATE)
     expect(setup.problems).toEqual([])

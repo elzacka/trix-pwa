@@ -7,9 +7,16 @@ import { FILE_LIMIT, type Folder } from './storage'
 const LIMIT = { files: 500, bytes: 20 * 1024 * 1024 }
 
 export async function makeBackup(folder: Folder): Promise<Blob> {
-  const files: Record<string, Uint8Array> = {}
-  for (const name of await folder.list()) files[`trix-data/${name}`] = strToU8(await folder.text(name))
-  return new Blob([zipSync(files) as Uint8Array<ArrayBuffer>], { type: 'application/zip' })
+  const files = new Map<string, string>()
+  for (const name of await folder.list()) files.set(name, await folder.text(name))
+  return zipFiles(files)
+}
+
+/** Files as a zip in the shape a backup has: `trix-data/<name>`. */
+export function zipFiles(files: Map<string, string>): Blob {
+  const entries: Record<string, Uint8Array> = {}
+  for (const [name, text] of files) entries[`trix-data/${name}`] = strToU8(text)
+  return new Blob([zipSync(entries) as Uint8Array<ArrayBuffer>], { type: 'application/zip' })
 }
 
 /** The Markdown files in a backup, by plain name; anything else, or too much, is left out. */

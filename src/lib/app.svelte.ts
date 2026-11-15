@@ -9,7 +9,7 @@ import {
   browserFolder, Changed, Folder, forgetFolder, loadFolder, permission, pickFolder, saveFolder, type FileText, type Kind, type Saved,
 } from './storage'
 import { SETUP_TEMPLATE, STARTER, template } from './templates'
-import { fill, isFileName } from './text'
+import { fill, isFileName, plain } from './text'
 import type { TextKey } from './texts'
 import { applyTheme } from './theme'
 import { emptyView, findAnchor, type View } from './view'
@@ -184,7 +184,7 @@ class App {
 
   // Links: a web address goes to the browser; a place in the app leaves a mark to come back to.
 
-  async follow(href: string, from: string) {
+  async follow(href: string) {
     const link = linkKind(href)
     if (link.kind !== 'app') return
     const target = link.file ? this.tabs.findIndex(tab => tab.file.toLowerCase() === link.file.toLowerCase()) : this.current
@@ -192,7 +192,7 @@ class App {
     if (!tab) return void (this.error = `Fant ikke fila ${link.file}`)
     const found = findAnchor(tab, link.anchor)
     if (!found) return void (this.error = `Fant ikke «${link.anchor}» i ${tab.name}`)
-    this.trail.push({ tab: this.current, views: $state.snapshot(this.views), scroll: scroller()?.scrollTop ?? 0, place: from })
+    this.trail.push({ tab: this.current, views: $state.snapshot(this.views), scroll: scroller()?.scrollTop ?? 0, place: this.place() })
     const view = emptyView()
     if (found.entry) {
       if (tab.module === 'steg') view.reading = found.entry.id
@@ -209,6 +209,13 @@ class App {
       if (!place.matches('button, a, input, [tabindex]')) place.tabIndex = -1
       place.focus({ preventScroll: true })
     }
+  }
+
+  /** Where a link was followed from: the open entry or guide, else the tab. */
+  private place(): string {
+    const id = this.view.open ?? this.view.reading
+    const entry = this.tab?.groups.flatMap(g => g.items).find(e => e.id === id)
+    return entry ? plain(entry.title) : (this.tab?.name ?? '')
   }
 
   async back() {

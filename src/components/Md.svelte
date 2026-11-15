@@ -10,10 +10,10 @@
 
   const heading = (depth: number) => `h${Math.min(6, Math.max(level, depth))}`
 
-  function open(event: MouseEvent, href: string, label: string) {
+  function open(event: MouseEvent, href: string) {
     event.preventDefault()
     event.stopPropagation()
-    app.follow(href, label)
+    app.follow(href)
   }
 </script>
 
@@ -53,7 +53,7 @@
     {@const link = linkKind(node.url)}
     {#if !links || link.kind === 'none'}<Md nodes={node.children} {level} links={false} />
     {:else if link.kind === 'web'}<a href={link.href} target="_blank" rel="noopener noreferrer"><Md nodes={node.children} {level} links={false} /></a>
-    {:else}<a href={node.url} onclick={e => open(e, node.url, textOf(node))}><Md nodes={node.children} {level} links={false} /></a>
+    {:else}<a href={node.url} onclick={e => open(e, node.url)}><Md nodes={node.children} {level} links={false} /></a>
     {/if}
   {:else if node.type === 'image'}{node.alt ?? ''}
   {:else if node.type === 'html'}{node.value}

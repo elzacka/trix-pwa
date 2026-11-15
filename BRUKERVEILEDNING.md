@@ -71,8 +71,9 @@ Trix sier fra når en ny versjon er klar. Velg **Oppdater** for å ta den i bruk
   for hver fane, fargene, skriften og tekstene. Trix viser fargene med en
   gang og sier fra hvis teksten blir vanskelig å lese.
 
-Du kan også endre filene i trix-data i et annet program. Trix leser dem på
-nytt når du går tilbake til appen.
+Du kan også endre filene i trix-data i et annet program. Chrome og Edge
+viser endringene med en gang. I andre nettlesere leser Trix filene på nytt
+når du går tilbake til appen.
 
 ## Hurtigtaster i Trix
 

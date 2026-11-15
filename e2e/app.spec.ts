@@ -150,6 +150,19 @@ test('import a file into a tab through the editor', async ({ page }) => {
   expect(errors).toEqual([])
 })
 
+test('a file changed by another program shows without a reload', async ({ page }) => {
+  const errors = await start(page)
+  test.skip(!(await page.evaluate(() => 'FileSystemObserver' in window)), 'No FileSystemObserver in this browser')
+  await page.evaluate(async () => {
+    const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('trix-data')
+    const writable = await (await dir.getFileHandle('Ekstra.md', { create: true })).createWritable()
+    await writable.write('---\nmodul: oppslag\n---\n# Ekstra\n### Ny\nTekst\n')
+    await writable.close()
+  })
+  await expect(page.getByRole('tab', { name: 'Ekstra' })).toBeVisible()
+  expect(errors).toEqual([])
+})
+
 test('customize: name, tab order, options and a colour, saved to the files', async ({ page }) => {
   const errors = await start(page)
   await page.getByRole('button', { name: 'Flere valg' }).click()

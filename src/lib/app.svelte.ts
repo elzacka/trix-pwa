@@ -6,7 +6,7 @@ import { currentOs } from './keys'
 import { linkKind } from './markdown'
 import { defaultSetup, parseSetup, SETUP_FILE, type Setup } from './setup'
 import {
-  browserFolder, Changed, Folder, forgetFolder, loadFolder, permission, pickFolder, saveFolder, type FileText, type Kind, type Saved,
+  browserFolder, Changed, Folder, forgetFolder, loadFolder, permission, pickFolder, saveFolder, watch, type FileText, type Kind, type Saved,
 } from './storage'
 import { SETUP_TEMPLATE, STARTER, template } from './templates'
 import { fill, isFileName, plain } from './text'
@@ -53,6 +53,8 @@ class App {
   private saved: Saved | null = null
   private files = new Map<string, FileText>()
   private loading: Promise<void> | null = null
+  private unwatch: (() => void) | null = null
+  private again: Promise<void> | null = null
 
   t = (key: TextKey, values: Record<string, string | number> = {}) => fill(this.setup.texts[key], { navn: this.setup.name, ...values })
 
@@ -99,6 +101,8 @@ class App {
 
   async switchFolder() {
     await forgetFolder()
+    this.unwatch?.()
+    this.unwatch = null
     this.folder = null
     this.saved = null
     this.files = new Map()
@@ -116,6 +120,9 @@ class App {
       await this.seed()
       await this.load()
       this.phase = 'ready'
+      this.unwatch?.()
+      // An open editor or form keeps its text.
+      this.unwatch = watch(saved.dir, () => !this.editing && !this.customizing && void this.load().catch(error => (this.error = String(error))))
     } catch (error) {
       this.error = String(error)
       this.phase = 'start'
@@ -132,9 +139,16 @@ class App {
     }
   }
 
-  /** Reads what changed on disk and parses it again; at most one load at a time. */
+  /** Reads what changed on disk and parses it again; one load at a time, and a call during one reads once more after it. */
   load(): Promise<void> {
-    this.loading ??= this.read().finally(() => (this.loading = null))
+    if (this.loading) {
+      this.again ??= this.loading.then(() => {
+        this.again = null
+        return this.load()
+      })
+      return this.again
+    }
+    this.loading = this.read().finally(() => (this.loading = null))
     return this.loading
   }
 

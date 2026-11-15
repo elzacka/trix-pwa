@@ -75,6 +75,17 @@ export async function browserFolder(): Promise<FileSystemDirectoryHandle> {
   return root.getDirectoryHandle(FOLDER_NAME, { create: true })
 }
 
+type Observer = { observe(handle: FileSystemHandle): Promise<void>; disconnect(): void }
+
+/** Calls `changed` when another program changes the folder; null where the browser has no FileSystemObserver. */
+export function watch(dir: FileSystemDirectoryHandle, changed: () => void): (() => void) | null {
+  const Observer = (globalThis as { FileSystemObserver?: new (callback: () => void) => Observer }).FileSystemObserver
+  if (!Observer) return null
+  const observer = new Observer(changed)
+  observer.observe(dir).catch(() => observer.disconnect())
+  return () => observer.disconnect()
+}
+
 type Permission = 'granted' | 'prompt' | 'denied'
 type Permitted = FileSystemDirectoryHandle & {
   queryPermission?(o: object): Promise<Permission>

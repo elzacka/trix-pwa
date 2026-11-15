@@ -1,5 +1,6 @@
 <script lang="ts">
   import { app } from '../lib/app.svelte'
+  import { doc } from '../lib/pip.svelte'
 
   const view = $derived(app.views[app.current])
   const query = $derived(view?.query.trim() ?? '')
@@ -8,7 +9,7 @@
   function clear() {
     view.query = ''
     view.tags = []
-    document.getElementById('query')?.focus()
+    doc().getElementById('query')?.focus()
   }
 </script>
 

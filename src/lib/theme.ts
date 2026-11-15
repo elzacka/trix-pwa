@@ -1,5 +1,6 @@
 // The setup's colours and font on :root through CSSOM: the CSP allows no inline style.
 
+import { copyTheme } from './pip.svelte'
 import { COLORS, type ColorName, type Setup } from './setup'
 
 type Rgb = [number, number, number]
@@ -74,5 +75,6 @@ export function applyTheme(setup: Setup): string[] {
   if (setup.font) root.style.setProperty('--font', `"${setup.font}", system-ui, sans-serif`)
   root.style.setProperty('--size', `${setup.size / 16}rem`)
   document.title = setup.name
+  copyTheme()
   return problems
 }

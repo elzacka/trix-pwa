@@ -2,6 +2,7 @@
   // «Tilpass appen»: Oppsett.md and the tabs' options as a form. The app shows each change at once; «Lagre» writes the files.
   import { onDestroy, tick } from 'svelte'
   import { app } from '../lib/app.svelte'
+  import { doc } from '../lib/pip.svelte'
   import type { Option } from '../lib/content'
   import { draftOf, optionsFor, previewOf } from '../lib/customize'
   import { COLORS, FONT, FONT_SIZE, SETUP_FILE, type ColorName } from '../lib/setup'
@@ -36,7 +37,7 @@
     const to = index + by
     ;[order[index], order[to]] = [order[to], order[index]]
     await tick()
-    const id = (dir: string) => document.getElementById(`move-${dir}-${to}`) as HTMLButtonElement | null
+    const id = (dir: string) => doc().getElementById(`move-${dir}-${to}`) as HTMLButtonElement | null
     const button = id(by < 0 ? 'up' : 'down')
     ;(button && !button.disabled ? button : id(by < 0 ? 'down' : 'up'))?.focus()
   }

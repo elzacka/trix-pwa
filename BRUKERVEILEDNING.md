@@ -32,6 +32,16 @@ Trix virker uten internett etter første besøk og kan installeres som en app:
 
 Trix sier fra når en ny versjon er klar. Velg **Oppdater** for å ta den i bruk.
 
+## Vis Trix over andre vinduer
+
+Trix kan vises i et lite vindu som ligger over de andre vinduene. Da ser du
+for eksempel hurtigtastene mens du jobber i et annet program. Velg **Vis over
+andre vinduer** i menyen. Valget finnes i nettlesere som støtter det, for
+eksempel Chrome og Edge på datamaskin.
+
+Lukk det lille vinduet eller velg **Tilbake til hovedvinduet** i menyen når
+du vil ha Trix tilbake der det var.
+
 ## Modulene
 
 | Modul | Viser |

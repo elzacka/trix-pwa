@@ -4,6 +4,7 @@ import { tick } from 'svelte'
 import { parseTab, type Module, type Tab } from './content'
 import { currentOs } from './keys'
 import { linkKind } from './markdown'
+import { doc, pip } from './pip.svelte'
 import { defaultSetup, parseSetup, SETUP_FILE, type Setup } from './setup'
 import {
   browserFolder, Changed, Folder, forgetFolder, loadFolder, permission, pickFolder, saveFolder, watch, type FileText, type Kind, type Saved,
@@ -100,6 +101,7 @@ class App {
   }
 
   async switchFolder() {
+    pip.window?.close()
     await forgetFolder()
     this.unwatch?.()
     this.unwatch = null
@@ -220,7 +222,7 @@ class App {
     this.views[target] = view
     this.current = target
     await tick()
-    const scope = found.entry ? document.getElementById(`entry-${found.entry.id}`) : document
+    const scope = found.entry ? doc().getElementById(`entry-${found.entry.id}`) : doc()
     const place = found.anchor ? (scope?.querySelector(`[data-anchor="${CSS.escape(found.anchor)}"]`) ?? scope) : scope
     if (place instanceof HTMLElement) {
       place.scrollIntoView({ block: 'start' })
@@ -361,6 +363,6 @@ class App {
   }
 }
 
-const scroller = () => document.getElementById('panel')
+const scroller = () => doc().getElementById('panel')
 
 export const app = new App()

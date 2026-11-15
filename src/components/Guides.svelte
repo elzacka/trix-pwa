@@ -3,6 +3,7 @@
   import { tick } from 'svelte'
   import type { Tab } from '../lib/content'
   import { app } from '../lib/app.svelte'
+  import { doc } from '../lib/pip.svelte'
   import { entryGroups } from '../lib/view'
   import { plain } from '../lib/text'
   import Body from './Body.svelte'
@@ -17,15 +18,15 @@
   async function read(id: string) {
     view.reading = id
     await tick()
-    document.getElementById('panel')?.scrollTo({ top: 0 })
-    document.getElementById('guide-title')?.focus()
+    doc().getElementById('panel')?.scrollTo({ top: 0 })
+    doc().getElementById('guide-title')?.focus()
   }
 
   async function close() {
     const id = view.reading
     view.reading = null
     await tick()
-    document.querySelector<HTMLElement>(`#entry-${id} button`)?.focus()
+    doc().querySelector<HTMLElement>(`#entry-${id} button`)?.focus()
   }
 </script>
 

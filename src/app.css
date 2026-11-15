@@ -220,6 +220,9 @@ kbd {
 .move-row .icon-button:disabled { visibility: hidden; }
 .empty { text-align: center; color: var(--muted); padding: 2rem 1rem; }
 
+/* The main window while the app floats */
+.away { display: grid; place-content: center; justify-items: center; gap: var(--gap); min-height: 100dvh; padding: 1rem; text-align: center; }
+
 /* Back from a link */
 .return {
   position: sticky; bottom: 0; display: flex; gap: 0.25rem; width: fit-content; max-width: 100%; margin: var(--gap) auto 0;

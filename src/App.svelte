@@ -3,6 +3,7 @@
   import { app } from './lib/app.svelte'
   import { IMPORT_TYPES } from './lib/import'
   import { pressedCombo } from './lib/keys'
+  import { canFloat, doc, float, pip } from './lib/pip.svelte'
   import { count, entryGroups, has, shortcutGroups } from './lib/view'
   import AddTab from './components/AddTab.svelte'
   import Cards from './components/Cards.svelte'
@@ -45,7 +46,8 @@
   async function restore(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0]
     if (!file) return
-    const ok = confirm('Filene i sikkerhetskopien erstatter filene med samme navn i trix-data. Vil du fortsette?')
+    // The floating window's own prompt: the main window's would open behind it.
+    const ok = (pip.window ?? window).confirm('Filene i sikkerhetskopien erstatter filene med samme navn i trix-data. Vil du fortsette?')
     if (ok) notice = `Hentet ${await app.restore(file)} filer fra sikkerhetskopien`
     ;(event.target as HTMLInputElement).value = ''
   }
@@ -67,7 +69,7 @@
     importDialog?.close()
   }
 
-  const canDrop = () => app.phase === 'ready' && !!app.tab && !app.editing && !app.customizing && !document.querySelector('dialog[open]')
+  const canDrop = () => app.phase === 'ready' && !!app.tab && !app.editing && !app.customizing && !doc().querySelector('dialog[open]')
   const files = (event: DragEvent) => event.dataTransfer?.types.includes('Files') ?? false
 
   // Anything else dropped, such as a link, would make the browser leave the app and lose unsaved text.
@@ -86,6 +88,8 @@
     dropping = canDrop()
   }
 
+  const dragleave = (event: DragEvent) => !event.relatedTarget && (dropping = false)
+
   /** A file dropped on a tab goes into that tab; anywhere else, into the tab shown. */
   async function drop(event: DragEvent) {
     if (!files(event)) return void (!editable(event) && event.preventDefault())
@@ -102,7 +106,7 @@
   async function selectTab(index: number) {
     app.select(index)
     await tick()
-    document.getElementById(`tab-${app.current}`)?.focus()
+    doc().getElementById(`tab-${app.current}`)?.focus()
   }
 
   function tabKeys(event: KeyboardEvent) {
@@ -116,7 +120,7 @@
   function clearSearch() {
     view.query = ''
     view.tags = []
-    document.getElementById('query')?.focus()
+    doc().getElementById('query')?.focus()
   }
 
   /** The next combination pressed becomes the search; a plain Esc stops. Combinations the browser keeps never arrive. */
@@ -130,18 +134,20 @@
       view.query = combo
       view.open = null
     }
-    document.getElementById('query')?.focus()
+    doc().getElementById('query')?.focus()
   }
 
   async function startMoving() {
     app.moving = true
     await tick()
-    document.getElementById('done')?.focus()
+    doc().getElementById('done')?.focus()
   }
 
   /** Esc closes the innermost thing that is open. */
   function keydown(event: KeyboardEvent) {
-    if (app.phase !== 'ready' || app.editing || app.customizing || document.querySelector('dialog[open]')) return
+    // While the app floats, the main window shows only the way back.
+    if (event.currentTarget !== (pip.window ?? window)) return
+    if (app.phase !== 'ready' || app.editing || app.customizing || doc().querySelector('dialog[open]')) return
     if (capturing) return capture(event)
     const mod = app.os === 'mac' ? event.metaKey : event.ctrlKey
     if (mod && /^[1-9]$/.test(event.key)) {
@@ -149,7 +155,7 @@
       selectTab(Number(event.key) - 1)
     } else if (mod && event.key.toLowerCase() === 'f' && searchable) {
       event.preventDefault()
-      document.getElementById('query')?.focus()
+      doc().getElementById('query')?.focus()
     } else if (mod && event.key.toLowerCase() === 'e' && tab) {
       event.preventDefault()
       app.edit(tab.file)
@@ -164,9 +170,18 @@
 
   // The files are the user's: read them again when the app comes back into view.
   const reload = () => app.phase === 'ready' && !app.editing && !app.customizing && app.load().catch(error => (app.error = String(error)))
+
+  // In the floating window, keys, focus and drops reach that window, not this one.
+  $effect(() => {
+    const win = pip.window
+    if (!win) return
+    const handlers = { keydown, focus: reload, dragover, dragleave, drop } as Record<string, (event: never) => unknown>
+    for (const [name, handler] of Object.entries(handlers)) win.addEventListener(name, handler as EventListener)
+    return () => { for (const [name, handler] of Object.entries(handlers)) win.removeEventListener(name, handler as EventListener) }
+  })
 </script>
 
-<svelte:window onkeydown={keydown} onfocus={reload} ondragover={dragover} ondragleave={e => !e.relatedTarget && (dropping = false)} ondrop={drop} />
+<svelte:window onkeydown={keydown} onfocus={reload} ondragover={dragover} ondragleave={dragleave} ondrop={drop} />
 <svelte:document onvisibilitychange={() => document.visibilityState === 'visible' && reload()} />
 
 {#if app.phase === 'start' || app.phase === 'reconnect'}
@@ -196,6 +211,8 @@
           {#if movable}<li><button type="button" onclick={() => run(() => startMoving())}>{app.t('rekkefølge')}</button></li>{/if}
           <li><button type="button" onclick={() => run(() => addDialog?.showModal())}>{app.t('ny fane')}</button></li>
           <li><button type="button" onclick={() => run(() => (app.customizing = true))}>{app.t('oppsett')}</button></li>
+          {#if pip.window}<li><button type="button" onclick={() => run(() => pip.window?.close())}>{app.t('hovedvindu')}</button></li>
+          {:else if canFloat}<li><button type="button" onclick={() => run(() => float(document.getElementById('app')!))}>{app.t('over andre')}</button></li>{/if}
           <li class="separator"><button type="button" onclick={() => run(() => app.backup())}>{app.t('eksporter')}</button></li>
           <li><button type="button" onclick={() => run(() => restoreInput?.click())}>{app.t('importer')}</button></li>
           <li><button type="button" onclick={() => run(() => app.switchFolder())}>{app.t('bytt mappe')}</button></li>

@@ -2,6 +2,7 @@
   // «Endre rekkefølgen»: the tab's groups and entries in file order, each moved by a button and saved at once.
   import { tick } from 'svelte'
   import { app } from '../lib/app.svelte'
+  import { doc } from '../lib/pip.svelte'
   import type { Group, Tab } from '../lib/content'
   import { moveGroup, moveItem, type Place } from '../lib/move'
   import { plain } from '../lib/text'
@@ -32,7 +33,7 @@
   async function move(line: number, by: -1 | 1, change: (text: string) => { text: string; line: number }) {
     const moved = await app.move(tab.file, change)
     await tick()
-    const row = document.querySelector(`.moving [data-line="${moved ?? line}"]`)
+    const row = doc().querySelector(`.moving [data-line="${moved ?? line}"]`)
     const buttons = [...(row?.querySelectorAll<HTMLButtonElement>('button') ?? [])]
     const button = buttons[by < 0 ? 0 : 1]
     ;(button && !button.disabled ? button : buttons.find(b => !b.disabled))?.focus()

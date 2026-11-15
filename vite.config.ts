@@ -58,8 +58,10 @@ export default defineConfig({
         background_color: '#f8fafc',
         categories: ['productivity', 'utilities'],
         icons: [
-          { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          // Exact PNG sizes, so small surfaces get the small icon rather than the large tile scaled down.
+          ...[16, 24, 32, 48].map(n => ({ src: `icon-${n}.png`, sizes: `${n}x${n}`, type: 'image/png', purpose: 'any' })),
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'icon-256.png', sizes: '256x256', type: 'image/png', purpose: 'any' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
           { src: 'icon-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],

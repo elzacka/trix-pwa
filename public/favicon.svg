@@ -1,9 +1,8 @@
-<!-- "blocks" from Tabler Icons, MIT License: no background, edge to edge, bolder stroke for 16 px tabs -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="1.75 1.75 20.5 20.5" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-  <style>
-    .a { stroke: #333336 } .b { stroke: #2973d9 }
-    @media (prefers-color-scheme: dark) { .a { stroke: #e8e8ea } .b { stroke: #5b9cf0 } }
-  </style>
-  <path class="a" d="M3 14h12a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h3a2 2 0 0 1 2 2v12"/>
-  <path class="b" d="M14 4a1 1 0 0 1 1 -1h5a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-5a1 1 0 0 1 -1 -1l0 -5"/>
+<!-- "blocks" from Tabler Icons, MIT License: browser tab, in-app logo and the app icon at 16–48 px: tile edge to edge, bolder stroke -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 24 24">
+  <rect x="0.5" y="0.5" width="23" height="23" rx="5.5" fill="#0a78b8"/>
+  <g transform="translate(12 12) scale(0.8) translate(-12 -12)" fill="none" stroke="#ffffff" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 14h12a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h3a2 2 0 0 1 2 2v12"/>
+    <path d="M14 4a1 1 0 0 1 1 -1h5a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-5a1 1 0 0 1 -1 -1l0 -5" fill="#ffffff"/>
+  </g>
 </svg>

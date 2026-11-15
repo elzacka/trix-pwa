@@ -193,7 +193,7 @@
     <Customize />
   {:else}
     <header class="bar">
-      <img src="{import.meta.env.BASE_URL}icon.svg" alt="" class="logo" />
+      <img src="{import.meta.env.BASE_URL}favicon.svg" alt="" class="logo" />
       {#if app.tabs.length > 1}
         <div class="tabs" role="tablist" aria-label={app.t('faner')} tabindex="-1" onkeydown={tabKeys}>
           {#each app.tabs as t, i (t.file)}

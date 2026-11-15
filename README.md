@@ -40,6 +40,14 @@ The app never sends the files anywhere.
 Stack: Svelte 5, Vite 8, vite-plugin-pwa (Workbox), TypeScript 6. Version:
 `package.json`.
 
+Icons, as PNG with `rsvg-convert -w N -h N <svg> -o public/<name>.png`:
+
+| Source | PNG | Used for |
+|---|---|---|
+| `public/icon.svg` | `icon-192`, `-256`, `-512` | Dock, start screen, start page |
+| `public/favicon.svg` | `icon-16`, `-24`, `-32`, `-48` | Browser tab, in-app logo, taskbar, Start menu |
+| `assets/icon-maskable.svg` | `icon-maskable` (512), `apple-touch-icon` (180) | Android, iOS |
+
 ## Deploy
 
 A push to `main` runs [deploy.yml](.github/workflows/deploy.yml): audit,

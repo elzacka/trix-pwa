@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { colorPair, defaultSetup, parseSetup } from '../src/lib/setup'
 import { parseTab } from '../src/lib/content'
+import { keyParts } from '../src/lib/keys'
 import { LIBRARY, SETUP_TEMPLATE, STARTER, template } from '../src/lib/templates'
 
 describe('setup', () => {
@@ -35,6 +36,10 @@ describe('setup', () => {
       expect(problems, ready.name).toEqual([])
       expect(tab?.name).toBe(ready.name)
       expect(tab?.shortcuts.flatMap(g => g.items).length, ready.name).toBeGreaterThan(50)
+      // No cell falls back to raw text under the limits for crafted cells.
+      for (const s of tab!.shortcuts.flatMap(g => g.items)) {
+        for (const cell of [s.windows, s.mac]) if (cell) expect(keyParts(cell, 'mac'), cell).not.toEqual([[{ text: cell }]])
+      }
     }
   })
 })

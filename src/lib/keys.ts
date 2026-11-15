@@ -100,17 +100,19 @@ export function pressedCombo(e: KeyEvent, os: Os): string | null {
   return formatCombo([...mods, key].filter(Boolean).join(' '), os)
 }
 
+// Real cells hold a few keys and words; a tab of crafted cells would draw hundreds of thousands.
 const ALTERNATIVE_LIMIT = 20
-const PART_LIMIT = 40
+const QUOTE_LIMIT = 40
+const PART_LIMIT = 10
 
 const QUOTED = /"([^"]+)"|«([^»]+)»/g
 
 /** A cell of a shortcut list: alternatives split on «eller», quoted words kept as text. */
 export function keyParts(cell: string, os: Os): KeyPart[][] {
   const alternatives = cell.split(/\s+eller\s+/i)
-  // Real cells hold a few alternatives; a crafted one with thousands shows as text.
-  if (alternatives.length > ALTERNATIVE_LIMIT || (cell.match(QUOTED)?.length ?? 0) > PART_LIMIT) return [[{ text: cell }]]
-  return alternatives
+  const asText = [[{ text: cell }]]
+  if (alternatives.length > ALTERNATIVE_LIMIT || (cell.match(QUOTED)?.length ?? 0) > QUOTE_LIMIT) return asText
+  const result = alternatives
     .map(alternative => {
       const parts: KeyPart[] = []
       let at = 0
@@ -125,6 +127,7 @@ export function keyParts(cell: string, os: Os): KeyPart[][] {
       return parts
     })
     .filter(parts => parts.length)
+  return result.flat().length > PART_LIMIT ? asText : result
 }
 
 export function currentOs(): Os {

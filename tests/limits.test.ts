@@ -60,5 +60,7 @@ describe('limits', () => {
     expect(entry.tags.length).toBeLessThanOrEqual(50)
     expect(keyParts(Array(30).fill('x').join(' eller '), 'mac')).toHaveLength(1)
     expect(keyParts('"a" '.repeat(100), 'mac')).toEqual([[{ text: '"a" '.repeat(100) }]])
+    expect(keyParts('"a" x '.repeat(6), 'mac')).toHaveLength(1)
+    expect(keyParts('"hold inne" ⌘W eller esc', 'mac')).toEqual([[{ text: 'hold inne' }, { keys: '⌘W' }], [{ keys: 'esc' }]])
   })
 })

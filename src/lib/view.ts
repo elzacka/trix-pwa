@@ -1,6 +1,7 @@
 // What a tab shows: its groups narrowed by search and tags, sorted A–Å when chosen.
 
 import type { Entry, Group, Shortcut, Tab } from './content'
+import { comboKey, keyParts, type Os } from './keys'
 import { searchEntries, searchShortcuts } from './search'
 import { byTitle, collator, plain } from './text'
 
@@ -43,12 +44,15 @@ export function entryGroups(tab: Tab, view: View): Group<Entry>[] {
   return groups.map(g => ({ ...g, items: g.items.filter(withTags) })).filter(g => g.items.length)
 }
 
-export function shortcutGroups(tab: Tab, view: View): Group<Shortcut>[] {
+/** Matches by name, or by keys when the query is a combination such as «⌘⇧S» or «ctrl shift S». */
+export function shortcutGroups(tab: Tab, view: View, os: Os): Group<Shortcut>[] {
   const query = view.query.trim()
   const groups = has(tab, 'a–å') ? alphabetical(tab.shortcuts) : tab.shortcuts
   if (!query) return groups
   const found = searchShortcuts(tab.shortcuts, query)
-  return groups.map(g => ({ ...g, items: g.items.filter(s => found.has(s.id)) })).filter(g => g.items.length)
+  const combo = comboKey(query, os)
+  const pressed = (s: Shortcut) => keyParts(os === 'mac' ? s.mac : s.windows, os).some(alt => alt.some(p => 'keys' in p && comboKey(p.keys, os) === combo))
+  return groups.map(g => ({ ...g, items: g.items.filter(s => found.has(s.id) || pressed(s)) })).filter(g => g.items.length)
 }
 
 export const count = <T>(groups: Group<T>[]) => groups.reduce((n, g) => n + g.items.length, 0)

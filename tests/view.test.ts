@@ -20,7 +20,12 @@ describe('view', () => {
   })
   it('filters shortcuts', () => {
     const keys = parseTab('H.md', '---\nmodul: hurtigtaster\n---\n## G\n- Lagre | ctrl S\n- Åpne | ctrl O\n')!.tab!
-    expect(shortcutGroups(keys, { ...emptyView(), query: 'lag' })[0].items.map(s => s.title)).toEqual(['Lagre'])
+    expect(shortcutGroups(keys, { ...emptyView(), query: 'lag' }, 'windows')[0].items.map(s => s.title)).toEqual(['Lagre'])
+    const mac = parseTab('H.md', '---\nmodul: hurtigtaster\n---\n- Lagre som | ctrl shift S | ⌘⇧S\n- Lagre | ctrl S | ⌘S\n')!.tab!
+    const titles = (query: string, os: 'mac' | 'windows') => shortcutGroups(mac, { ...emptyView(), query }, os).flatMap(g => g.items.map(s => s.title))
+    expect(titles('⇧⌘S', 'mac')).toEqual(['Lagre som'])
+    expect(titles('Shift+Ctrl+S', 'windows')).toEqual(['Lagre som'])
+    expect(titles('Ctrl+S', 'windows')).toEqual(['Lagre'])
   })
   it('sorts links into web, app and text', () => {
     expect(linkKind('https://dsb.no').kind).toBe('web')

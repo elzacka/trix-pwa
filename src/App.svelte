@@ -1,6 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte'
   import { app } from './lib/app.svelte'
+  import { pressedCombo } from './lib/keys'
   import { count, entryGroups, has, shortcutGroups } from './lib/view'
   import AddTab from './components/AddTab.svelte'
   import Cards from './components/Cards.svelte'
@@ -16,13 +17,14 @@
   let addDialog = $state<HTMLDialogElement>()
   let restoreInput = $state<HTMLInputElement>()
   let notice = $state('')
+  let capturing = $state(false)
 
   const tab = $derived(app.tabs[app.current])
   const view = $derived(app.views[app.current])
   const reading = $derived(tab?.module === 'steg' && view?.reading != null)
   const searchable = $derived(tab && has(tab, 'søk') && !reading)
   const results = $derived(
-    !tab || !view || (!view.query.trim() && !view.tags.length) ? null : tab.module === 'hurtigtaster' ? count(shortcutGroups(tab, view)) : count(entryGroups(tab, view)),
+    !tab || !view || (!view.query.trim() && !view.tags.length) ? null : tab.module === 'hurtigtaster' ? count(shortcutGroups(tab, view, app.os)) : count(entryGroups(tab, view)),
   )
   const messages = $derived([...app.problems, app.error, notice].filter(Boolean))
 
@@ -61,9 +63,24 @@
     document.getElementById('query')?.focus()
   }
 
+  /** The next combination pressed becomes the search; a plain Esc stops. Combinations the browser keeps never arrive. */
+  function capture(event: KeyboardEvent) {
+    event.preventDefault()
+    const stop = event.key === 'Escape' && !(event.metaKey || event.ctrlKey || event.altKey || event.shiftKey)
+    const combo = stop ? null : pressedCombo(event, app.os)
+    if (!stop && !combo) return
+    capturing = false
+    if (combo) {
+      view.query = combo
+      view.open = null
+    }
+    document.getElementById('query')?.focus()
+  }
+
   /** Esc closes the innermost thing that is open. */
   function keydown(event: KeyboardEvent) {
     if (app.phase !== 'ready' || app.editing || app.customizing || document.querySelector('dialog[open]')) return
+    if (capturing) return capture(event)
     const mod = app.os === 'mac' ? event.metaKey : event.ctrlKey
     if (mod && /^[1-9]$/.test(event.key)) {
       event.preventDefault()
@@ -138,9 +155,13 @@
         {#if searchable}
           <div class="search">
             <Icon name="search" />
-            <input id="query" type="search" autocomplete="off" spellcheck="false" aria-label={app.t('søk')} placeholder={tab.placeholder || app.t('søk')}
+            <input id="query" type="search" autocomplete="off" spellcheck="false" aria-label={app.t('søk')} placeholder={capturing ? app.t('trykk tast') : tab.placeholder || app.t('søk')}
               bind:value={view.query} oninput={() => (view.open = null)} />
             {#if view.query}<button type="button" class="icon-button" aria-label={app.t('tøm søk')} title={app.t('tøm søk')} onclick={clearSearch}><Icon name="close" /></button>{/if}
+            {#if tab.module === 'hurtigtaster'}
+              <button type="button" class="icon-button" aria-pressed={capturing} aria-label={app.t('finn tast')} title={app.t('finn tast')}
+                onclick={() => (capturing = !capturing)} onblur={() => (capturing = false)}><Icon name="keyboard" /></button>
+            {/if}
           </div>
         {/if}
         {#if view.tags.length && !reading}
@@ -151,7 +172,7 @@
             {/each}
           </div>
         {/if}
-        <p class="sr-only" aria-live="polite">{results === null ? '' : app.t('treff', { antall: results })}</p>
+        <p class="sr-only" aria-live="polite">{capturing ? app.t('trykk tast') : results === null ? '' : app.t('treff', { antall: results })}</p>
         <div class="list">
           {#if tab.module === 'oppslag'}<Lookup {tab} />
           {:else if tab.module === 'kort'}<Cards {tab} />

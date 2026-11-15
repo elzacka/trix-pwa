@@ -45,6 +45,9 @@ Trix sier fra når en ny versjon er klar. Velg **Oppdater** for å ta den i bruk
 
 - **Søk**: Skriv i søkefeltet. Trix finner også ord med skrivefeil og
   andre navn på samme ting.
+- **Finn en hurtigtast**: Velg tastatursymbolet ved søkefeltet i en fane med
+  hurtigtaster, og trykk hurtigtasten. Trix viser handlingene som bruker den.
+  Noen hurtigtaster bruker nettleseren selv, og dem kan ikke Trix se.
 - **Emneknagger**: Trykk på en #emneknagg for å se alt med samme emne.
 - **Lenker**: En lenke til en annen fane åpner stedet den peker på. Velg
   **Tilbake til** nederst for å gå tilbake dit du var.

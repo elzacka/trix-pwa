@@ -4,6 +4,8 @@ export const TEXTS = {
   navn: 'Trix',
   søk: 'Søk',
   'tøm søk': 'Tøm søk',
+  'finn tast': 'Finn hurtigtasten ved å trykke den',
+  'trykk tast': 'Trykk hurtigtasten',
   treff: '{antall} treff',
   'ingen treff': 'Ingen treff på «{søk}»',
   tom: 'Lista er tom',

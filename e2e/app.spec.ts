@@ -86,6 +86,19 @@ test('edit and save a file, then add a tab', async ({ page }) => {
   expect(errors).toEqual([])
 })
 
+test('look up a shortcut by pressing it', async ({ page }) => {
+  const errors = await start(page)
+  await page.getByRole('tab', { name: 'Hurtigtaster' }).click()
+  await page.getByRole('button', { name: 'Finn hurtigtasten ved å trykke den' }).click()
+  await expect(page.getByRole('searchbox')).toHaveAttribute('placeholder', 'Trykk hurtigtasten')
+  // The app reads the system from the user agent, which Playwright's devices set.
+  const mac = await page.evaluate(() => /mac|iphone|ipad/i.test(navigator.userAgent))
+  await page.keyboard.press(mac ? 'Meta+Shift+KeyS' : 'Control+Shift+KeyS')
+  await expect(page.getByRole('searchbox')).toBeFocused()
+  await expect(page.locator('.shortcut .name')).toHaveText(['Handling med ulike taster'])
+  expect(errors).toEqual([])
+})
+
 test('customize: name, tab order, options and a colour, saved to the files', async ({ page }) => {
   const errors = await start(page)
   await page.getByRole('button', { name: 'Flere valg' }).click()

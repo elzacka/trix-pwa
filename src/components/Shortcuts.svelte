@@ -9,7 +9,7 @@
 
   let { tab }: { tab: Tab } = $props()
   const view = $derived(app.views[app.current])
-  const groups = $derived(shortcutGroups(tab, view))
+  const groups = $derived(shortcutGroups(tab, view, app.os))
   const keys = (s: Shortcut) => keyParts(app.os === 'mac' ? s.mac : s.windows, app.os)
 
   /** Rows in the same `:::` box, run by run. */

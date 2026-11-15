@@ -28,7 +28,7 @@ alt dette i «Tilpass appen» i menyen.
   - tekst: Navnet på en skrift som er installert på enheten. Uten navn bruker appen skriften til systemet.
   - størrelse: 12–24
 - tekster: Nøkkel: tekst. Ord i {klammer} fyller appen inn. Eksempel: søk: Søk i lista
-  - Nøkler: søk, tøm søk, treff, ingen treff, tom, vis alt, merket, fjern merke, også, engelsk, tilbake,
+  - Nøkler: søk, tøm søk, finn tast, trykk tast, treff, ingen treff, tom, vis alt, merket, fjern merke, også, engelsk, tilbake,
     tilbake til, bli her, faner, meny, rediger, ny fane, oppsett, eksporter, importer, bytt mappe,
     hjelp, lagre, avbryt, forkast, endret utenfor, ny versjon, oppdater, snu kort
 -->

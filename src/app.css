@@ -70,6 +70,7 @@ button { cursor: pointer; }
   display: inline-grid; place-items: center; min-width: 2.75rem; min-height: 2.75rem;
   border: 0; border-radius: 0.5rem; background: transparent; color: var(--muted);
 }
+.icon-button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
 .icon-button:hover { color: var(--text); background: color-mix(in srgb, var(--text) 8%, transparent); }
 
 /* Bar: logo, tabs, menu */
@@ -276,5 +277,5 @@ legend { font-weight: 600; margin-bottom: 0.25rem; }
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 @media (forced-colors: active) {
-  .tabs [role="tab"][aria-selected="true"], .chip, .tag[aria-pressed="true"] { border: 2px solid CanvasText; }
+  .tabs [role="tab"][aria-selected="true"], .chip, .tag[aria-pressed="true"], .icon-button[aria-pressed="true"] { border: 2px solid CanvasText; }
 }

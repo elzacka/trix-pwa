@@ -70,6 +70,36 @@ export function formatCombo(combo: string, os: Os): string {
   return names.map(k => k.name).join('+')
 }
 
+/** The same combination however it is written: modifiers in a fixed order, names lowercased. */
+export function comboKey(combo: string, os: Os): string {
+  const ids = tokens(combo).map(t => keyName(t, os).id.toLowerCase())
+  return [...ids.filter(id => MODIFIERS.has(id)).sort(), ...ids.filter(id => !MODIFIERS.has(id))].join(' ')
+}
+
+const CODE_NAMES: Record<string, string> = {
+  Space: 'space', Enter: 'enter', Tab: 'tab', Escape: 'esc', Backspace: 'backspace', Delete: 'delete',
+  ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down',
+}
+// With shift or alt the character changes, so the key's place names it.
+const PUNCTUATION: Record<string, string> = {
+  Period: '.', Comma: ',', Minus: '-', Equal: '=', Slash: '/', Backslash: '\\', Semicolon: ';', Quote: "'",
+  BracketLeft: '[', BracketRight: ']', Backquote: '`', IntlBackslash: '<',
+}
+
+type KeyEvent = Pick<KeyboardEvent, 'key' | 'code' | 'metaKey' | 'ctrlKey' | 'altKey' | 'shiftKey'>
+
+/** A pressed combination as the system writes it, in the order its menus use; null while only modifiers are down. */
+export function pressedCombo(e: KeyEvent, os: Os): string | null {
+  const key = /^(Key[A-Z]|Digit\d)$/.test(e.code) ? e.code.at(-1)
+    : /^F\d+$/.test(e.code) ? e.code
+    : (CODE_NAMES[e.code] ?? (e.key.length === 1 && !e.shiftKey && !e.altKey ? e.key : PUNCTUATION[e.code]))
+  if (!key) return null
+  const mods = os === 'mac'
+    ? [e.ctrlKey && 'ctrl', e.altKey && 'alt', e.shiftKey && 'shift', e.metaKey && 'cmd']
+    : [e.metaKey && 'win', e.ctrlKey && 'ctrl', e.altKey && 'alt', e.shiftKey && 'shift']
+  return formatCombo([...mods, key].filter(Boolean).join(' '), os)
+}
+
 const QUOTED = /"([^"]+)"|«([^»]+)»/g
 
 /** A cell of a shortcut list: alternatives split on «eller», quoted words kept as text. */

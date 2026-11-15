@@ -59,7 +59,8 @@ Trix sier fra når en ny versjon er klar. Velg **Oppdater** for å ta den i bruk
 
 - **Endre innhold i …**: Endrer fila til fanen du står i. Øverst i fila
   står det hvordan du skriver grupper, oppslag, lister, bokser og lenker.
-- **Legg til fane**: Lager en ny fane fra modulen du velger.
+- **Legg til fane**: Lager en ny fane fra modulen du velger, eller fra en
+  ferdig liste med hurtigtastene i Chrome eller Edge.
 - **Hent innhold fra fil**: Henter innhold fra Word (.docx), RTF, Excel
   (.xlsx), CSV, Markdown eller ren tekst inn i fanen. Du kan også dra en fil
   til fanen. Trix viser resultatet i redigeringen, og fila endres først når

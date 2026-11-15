@@ -83,6 +83,14 @@ test('edit and save a file, then add a tab', async ({ page }) => {
   await page.getByLabel('Navn').fill('Telefonliste')
   await page.getByRole('dialog').getByRole('button', { name: 'Legg til fane' }).click()
   await expect(page.getByRole('tab', { name: 'Telefonliste' })).toHaveAttribute('aria-selected', 'true')
+
+  await page.getByRole('button', { name: 'Flere valg' }).click()
+  await page.getByRole('button', { name: 'Legg til fane' }).click()
+  await page.getByRole('radio', { name: /Chrome/ }).check()
+  await expect(page.getByLabel('Navn')).toHaveValue('Chrome')
+  await page.getByRole('dialog').getByRole('button', { name: 'Legg til fane' }).click()
+  await expect(page.getByRole('tab', { name: 'Chrome' })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('heading', { name: 'Faner' })).toBeVisible()
   expect(errors).toEqual([])
 })
 

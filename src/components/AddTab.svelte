@@ -2,6 +2,7 @@
   // «Legg til fane»: a new file from the module's template.
   import { app } from '../lib/app.svelte'
   import { MODULES, type Module } from '../lib/content'
+  import { LIBRARY, type LibraryKey } from '../lib/templates'
 
   let { dialog = $bindable() }: { dialog?: HTMLDialogElement } = $props()
 
@@ -13,12 +14,13 @@
   }
 
   let name = $state('')
-  let module = $state<Module>('oppslag')
+  let choice = $state<Module | LibraryKey>('oppslag')
   let error = $state('')
 
   async function submit(event: SubmitEvent) {
     event.preventDefault()
-    error = (await app.addTab(name, module)) ?? ''
+    const ready = choice in LIBRARY ? LIBRARY[choice as LibraryKey] : null
+    error = (await (ready ? app.addTab(name, ready.module, ready.text) : app.addTab(name, choice as Module))) ?? ''
     if (!error) {
       dialog?.close()
       name = ''
@@ -35,8 +37,17 @@
       <legend>Modul</legend>
       {#each MODULES as m (m)}
         <label class="choice">
-          <input type="radio" name="module" value={m} bind:group={module} />
+          <input type="radio" name="module" value={m} bind:group={choice} />
           <span><strong>{NAMES[m][0]}</strong> {NAMES[m][1]}</span>
+        </label>
+      {/each}
+    </fieldset>
+    <fieldset>
+      <legend>Ferdige lister</legend>
+      {#each Object.entries(LIBRARY) as [key, ready] (key)}
+        <label class="choice">
+          <input type="radio" name="module" value={key} bind:group={choice} onchange={() => (name ||= ready.name)} />
+          <span><strong>{ready.name}</strong> {ready.description}</span>
         </label>
       {/each}
     </fieldset>

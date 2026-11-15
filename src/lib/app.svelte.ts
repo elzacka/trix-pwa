@@ -334,11 +334,12 @@ class App {
     return line + 1
   }
 
-  async addTab(name: string, module: Module): Promise<string | null> {
+  /** A new tab from a module's template, or from a ready-made list. */
+  async addTab(name: string, module: Module, text = template(module, name.trim())): Promise<string | null> {
     const file = `${name.trim()}.md`
     if (!isFileName(file) || file.toLowerCase() === SETUP_FILE.toLowerCase()) return `«${name}» kan ikke være et filnavn`
     if (await this.folder!.exists(file)) return `Fila ${file} finnes allerede`
-    await this.folder!.write(file, template(module, name.trim()), null)
+    await this.folder!.write(file, text.replaceAll('{navn}', name.trim()), null)
     await this.load()
     this.select(this.tabs.findIndex(tab => tab.file === file))
     return null

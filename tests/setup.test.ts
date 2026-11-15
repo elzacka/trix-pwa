@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { colorPair, defaultSetup, parseSetup } from '../src/lib/setup'
 import { parseTab } from '../src/lib/content'
-import { SETUP_TEMPLATE, STARTER, template } from '../src/lib/templates'
+import { LIBRARY, SETUP_TEMPLATE, STARTER, template } from '../src/lib/templates'
 
 describe('setup', () => {
   it('splits light and dark, also with slashes inside brackets', () => {
@@ -27,6 +27,14 @@ describe('setup', () => {
       expect(problems, file).toEqual([])
       expect(tab?.module).toBe(module)
       expect(tab?.name).toBe('Navn')
+    }
+  })
+  it('every ready-made list is a tab without problems', () => {
+    for (const ready of Object.values(LIBRARY)) {
+      const { tab, problems } = parseTab('X.md', ready.text.replaceAll('{navn}', ready.name))
+      expect(problems, ready.name).toEqual([])
+      expect(tab?.name).toBe(ready.name)
+      expect(tab?.shortcuts.flatMap(g => g.items).length, ready.name).toBeGreaterThan(50)
     }
   })
 })

@@ -25,7 +25,8 @@ The app never sends the files anywhere.
   ([src/templates/Oppsett.md](src/templates/Oppsett.md)).
 - One `.md` per tab. YAML at the top names the module (`modul: oppslag`); a
   file without it is not a tab. Format: each template in
-  [src/templates/](src/templates/).
+  [src/templates/](src/templates/); ready-made lists in
+  [src/templates/bibliotek/](src/templates/bibliotek/).
 
 ## Develop
 

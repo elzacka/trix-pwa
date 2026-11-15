@@ -42,8 +42,8 @@ export function defaultSetup(): Setup {
 /** Characters a colour can hold; the browser checks the value itself before using it. */
 const COLOR = /^[#\p{L}\p{N}\s(),.%/+-]{1,60}$/u
 
-// A colour must be one: var(), attr(), env() and keywords pass CSS.supports but defeat the contrast check.
-const INDIRECT = /\b(var|attr|env)\s*\(|^(inherit|initial|unset|revert|revert-layer|currentcolor)$/i
+// A colour must be one: var(), attr(), env(), light-dark() and keywords pass CSS.supports but defeat the contrast check.
+const INDIRECT = /\b(var|attr|env|light-dark)\s*\(|^(inherit|initial|unset|revert|revert-layer|currentcolor)$/i
 const valid = (value: string) => COLOR.test(value) && !INDIRECT.test(value)
 
 /** «#fff / #000» → light and dark; one value serves both. The split ignores slashes inside brackets. */

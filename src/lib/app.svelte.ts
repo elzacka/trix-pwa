@@ -307,7 +307,7 @@ class App {
       if (old && original !== undefined && tabChanged(old, tab)) writes.push({ name: tab.file, text: writeTab(original, tab), original })
     }
     for (const { name, original } of writes) {
-      const now = (await folder.exists(name)) ? (await folder.read(name)).text : null
+      const now = (await folder.exists(name)) ? await folder.text(name) : null
       if (now !== original) return false
     }
     for (const { name, text, original } of writes) await folder.write(name, text, original)
@@ -353,7 +353,7 @@ class App {
   async restore(file: File): Promise<number> {
     const files = readBackup(new Uint8Array(await file.arrayBuffer()))
     for (const [name, text] of files) {
-      const current = (await this.folder!.exists(name)) ? (await this.folder!.read(name)).text : null
+      const current = (await this.folder!.exists(name)) ? await this.folder!.text(name) : null
       await this.folder!.write(name, text, current)
     }
     await this.load()

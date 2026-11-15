@@ -27,7 +27,7 @@ export async function importText(name: string, bytes: Uint8Array, module: Module
   if (!importable(name, bytes.length)) throw new Error(`${name}: ukjent filtype eller for stor`)
   const text = await read(name, bytes, module)
   // The result becomes a tab file, which the app reads only up to this size.
-  if (text.length > TAB_LIMIT) throw new Error('Fila er for stor')
+  if (new TextEncoder().encode(text).length > TAB_LIMIT) throw new Error('Fila er for stor')
   return text
 }
 
@@ -47,7 +47,7 @@ function link(words: string, href: string | undefined): string {
   // A long label would make the parser slow; it stays text.
   if (!href || href.length > 2048 || words.length > 500) return words
   const out = `[${words}](${href})`
-  const nodes = parseInline(out)
+  const nodes = parseInline(out, 2600)
   return nodes.length === 1 && nodes[0].type === 'link' ? out : words
 }
 
@@ -130,7 +130,7 @@ export function toMarkdown(blocks: Block[], module: Module): string {
   if (cells > CELL_LIMIT) throw new Error('For mange celler')
   // Levels count from the document's own top heading: a document may start at Overskrift 2.
   // Levels 1–9 only, as Word has: a crafted file could give every heading its own level.
-  for (const b of kept) if (b.type === 'heading') b.level = Math.min(9, Math.max(1, b.level))
+  for (const b of kept) if (b.type === 'heading') b.level = Math.min(9, Math.max(1, Math.round(b.level) || 1))
   const levels = [...new Set(kept.flatMap(b => (b.type === 'heading' ? [b.level] : [])))].sort((a, b) => a - b)
   for (const b of kept) if (b.type === 'heading') b.rank = levels.indexOf(b.level)
   let left = TAB_LIMIT

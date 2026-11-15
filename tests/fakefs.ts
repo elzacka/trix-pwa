@@ -7,7 +7,7 @@ export function fakeDir(files: Record<string, string> = {}): FileSystemDirectory
     name,
     getFile: async () => {
       const file = store.get(name)!
-      return { text: async () => file.text, lastModified: file.modified }
+      return { text: async () => file.text, lastModified: file.modified, size: new Blob([file.text]).size }
     },
     createWritable: async () => {
       let text = ''

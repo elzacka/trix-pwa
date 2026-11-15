@@ -75,6 +75,7 @@ export function readRtf(bytes: Uint8Array): Block[] {
     table = null
   }
   const endParagraph = () => {
+    if (++pieces > PIECE_LIMIT) throw new Error('Fila er for stor')
     flushBytes()
     if (para.table) {
       cell.push({ text: ' ' })
@@ -123,6 +124,7 @@ export function readRtf(bytes: Uint8Array): Block[] {
       case 'ls': para.list = true; break
       case 'intbl': para.table = true; break
       case 'cell': case 'nestcell':
+        if (++pieces > PIECE_LIMIT) throw new Error('Fila er for stor')
         row ??= []
         row.push(cell)
         cell = []

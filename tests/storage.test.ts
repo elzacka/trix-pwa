@@ -22,4 +22,11 @@ describe('storage', () => {
     const files = readBackup(new Uint8Array(await (await makeBackup(folder)).arrayBuffer()))
     expect([...files]).toEqual([['A.md', 'æøå'], ['B.md', 'b']])
   })
+  it('a file over 2 MB is not shown, but goes into a backup and cannot be written', async () => {
+    const big = 'ø'.repeat(1_100_000)
+    const folder = new Folder(fakeDir({ 'Stor.md': big }), 'nettleser')
+    await expect(folder.read('Stor.md')).rejects.toThrow(/2 MB/)
+    expect(readBackup(new Uint8Array(await (await makeBackup(folder)).arrayBuffer())).size).toBe(0)
+    await expect(folder.write('Ny.md', big, null)).rejects.toThrow(/2 MB/)
+  })
 })

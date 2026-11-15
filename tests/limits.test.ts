@@ -24,4 +24,10 @@ describe('limits', () => {
     expect(colorPair('rgb(0 0 0 / 50%)')).not.toBeNull()
     expect(parseSetup('---\ntekster:\n  toString: x\n---\n').problems).toHaveLength(1)
   })
+  it('parses a large real table, and falls back on deep nesting (N3, TRIX-SEC-03)', () => {
+    const table = ['| Vare | Pris |', '|---|---|', ...Array.from({ length: 1500 }, (_, i) => `| Vare ${i} | ${i} |`)].join('\n')
+    expect(table.length).toBeGreaterThan(20_000)
+    expect(parseMarkdown(table).children[0].type).toBe('table')
+    expect(parseMarkdown('> '.repeat(6000) + 'bunn').children[0].type).toBe('paragraph')
+  })
 })

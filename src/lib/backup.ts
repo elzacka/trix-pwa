@@ -8,7 +8,7 @@ const LIMIT = { files: 500, bytes: 20 * 1024 * 1024 }
 
 export async function makeBackup(folder: Folder): Promise<Blob> {
   const files: Record<string, Uint8Array> = {}
-  for (const name of await folder.list()) files[`trix-data/${name}`] = strToU8((await folder.read(name)).text)
+  for (const name of await folder.list()) files[`trix-data/${name}`] = strToU8(await folder.text(name))
   return new Blob([zipSync(files) as Uint8Array<ArrayBuffer>], { type: 'application/zip' })
 }
 

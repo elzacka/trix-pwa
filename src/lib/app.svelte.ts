@@ -14,6 +14,7 @@ import type { TextKey } from './texts'
 import { applyTheme } from './theme'
 import { emptyView, findAnchor, type View } from './view'
 import { makeBackup, readBackup, download } from './backup'
+import { importable, importText, mergeContent, replaceContent } from './import'
 import { setupChanged, tabChanged, writeSetup, writeTab, type Draft } from './customize'
 
 type Phase = 'loading' | 'start' | 'reconnect' | 'ready'
@@ -28,6 +29,8 @@ interface Mark {
 export interface Editing {
   name: string
   original: string
+  /** What the editor starts with, when not the file as read: an import. */
+  text?: string
 }
 
 class App {
@@ -239,6 +242,27 @@ class App {
   edit(name: string) {
     const file = this.files.get(name)
     if (file) this.editing = { name, original: file.text }
+  }
+
+  /** A file as content for the current tab, or null when it holds nothing the tab shows. */
+  async readImport(file: File): Promise<{ merged: string; replaced: string; hasContent: boolean } | null> {
+    const tab = this.tab
+    const original = tab && this.files.get(tab.file)?.text
+    if (!tab || original === undefined || !importable(file.name, file.size)) return null
+    const imported = await importText(file.name, new Uint8Array(await file.arrayBuffer()), tab.module).catch(() => '')
+    const count = (text: string) => {
+      const parsed = parseTab(tab.file, text).tab
+      return parsed ? [...parsed.groups, ...parsed.shortcuts].reduce((n, g) => n + g.items.length, 0) : 0
+    }
+    const replaced = replaceContent(original, imported)
+    if (!count(replaced)) return null
+    return { merged: mergeContent(original, imported), replaced, hasContent: count(original) > 0 }
+  }
+
+  /** The editor with `text` in place of the file's content; «Lagre» writes it. */
+  editWith(name: string, text: string) {
+    const file = this.files.get(name)
+    if (file) this.editing = { name, original: file.text, text }
   }
 
   /** False when the file changed elsewhere since it was opened; nothing is written then. */

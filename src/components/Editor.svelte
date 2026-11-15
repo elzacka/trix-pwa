@@ -4,7 +4,7 @@
 
   let { editing }: { editing: Editing } = $props()
   // svelte-ignore state_referenced_locally
-  let text = $state(editing.original.replace(/\r\n/g, '\n'))
+  let text = $state((editing.text ?? editing.original).replace(/\r\n/g, '\n'))
   let discarding = $state(false)
   let error = $state('')
   let field: HTMLTextAreaElement

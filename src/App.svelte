@@ -1,6 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte'
   import { app } from './lib/app.svelte'
+  import { IMPORT_TYPES } from './lib/import'
   import { pressedCombo } from './lib/keys'
   import { count, entryGroups, has, shortcutGroups } from './lib/view'
   import AddTab from './components/AddTab.svelte'
@@ -17,6 +18,10 @@
   let menu = $state<HTMLElement>()
   let addDialog = $state<HTMLDialogElement>()
   let restoreInput = $state<HTMLInputElement>()
+  let importInput = $state<HTMLInputElement>()
+  let importDialog = $state<HTMLDialogElement>()
+  let importing = $state<{ file: string; merged: string; replaced: string } | null>(null)
+  let dropping = $state(false)
   let notice = $state('')
   let capturing = $state(false)
 
@@ -43,6 +48,46 @@
     const ok = confirm('Filene i sikkerhetskopien erstatter filene med samme navn i trix-data. Vil du fortsette?')
     if (ok) notice = `Hentet ${await app.restore(file)} filer fra sikkerhetskopien`
     ;(event.target as HTMLInputElement).value = ''
+  }
+
+  /** The result opens in the editor, and the file changes only on «Lagre». */
+  async function readImport(file: File) {
+    const tab = app.tab
+    if (!tab) return
+    const result = await app.readImport(file)
+    if (!result) return void (app.error = app.t('passer ikke', { fil: file.name, fane: tab.name }))
+    if (!result.hasContent) return app.editWith(tab.file, result.replaced)
+    importing = { file: file.name, ...result }
+    importDialog?.showModal()
+  }
+
+  function finishImport(how: 'merged' | 'replaced' | null) {
+    const tab = app.tab
+    if (how && importing && tab) app.editWith(tab.file, importing[how])
+    importDialog?.close()
+  }
+
+  const canDrop = () => app.phase === 'ready' && !!app.tab && !app.editing && !app.customizing && !document.querySelector('dialog[open]')
+  const files = (event: DragEvent) => event.dataTransfer?.types.includes('Files') ?? false
+
+  function dragover(event: DragEvent) {
+    if (!files(event)) return
+    event.preventDefault()
+    event.dataTransfer!.dropEffect = canDrop() ? 'copy' : 'none'
+    dropping = canDrop()
+  }
+
+  /** A file dropped on a tab goes into that tab; anywhere else, into the tab shown. */
+  async function drop(event: DragEvent) {
+    if (!files(event)) return
+    event.preventDefault()
+    dropping = false
+    const file = event.dataTransfer?.files[0]
+    if (!file || !canDrop()) return
+    const target = (event.target as Element).closest?.('[role="tab"]')
+    if (target) app.select(Number(target.id.slice('tab-'.length)))
+    app.error = ''
+    await readImport(file).catch(error => (app.error = String(error)))
   }
 
   async function selectTab(index: number) {
@@ -112,7 +157,7 @@
   const reload = () => app.phase === 'ready' && !app.editing && !app.customizing && app.load().catch(error => (app.error = String(error)))
 </script>
 
-<svelte:window onkeydown={keydown} onfocus={reload} />
+<svelte:window onkeydown={keydown} onfocus={reload} ondragover={dragover} ondragleave={e => !e.relatedTarget && (dropping = false)} ondrop={drop} />
 <svelte:document onvisibilitychange={() => document.visibilityState === 'visible' && reload()} />
 
 {#if app.phase === 'start' || app.phase === 'reconnect'}
@@ -138,6 +183,7 @@
       <div id="menu" popover bind:this={menu}>
         <ul>
           {#if tab}<li><button type="button" onclick={() => run(() => app.edit(tab.file))}>{app.t('rediger', { fane: tab.name })}</button></li>{/if}
+          {#if tab}<li><button type="button" onclick={() => run(() => importInput?.click())}>{app.t('hent fil')}</button></li>{/if}
           {#if movable}<li><button type="button" onclick={() => run(() => startMoving())}>{app.t('rekkefølge')}</button></li>{/if}
           <li><button type="button" onclick={() => run(() => addDialog?.showModal())}>{app.t('ny fane')}</button></li>
           <li><button type="button" onclick={() => run(() => (app.customizing = true))}>{app.t('oppsett')}</button></li>
@@ -149,9 +195,11 @@
         </ul>
       </div>
       <input type="file" accept=".zip,application/zip" hidden bind:this={restoreInput} onchange={restore} />
+      <input type="file" accept={IMPORT_TYPES.join(',')} hidden bind:this={importInput}
+        onchange={e => { const file = e.currentTarget.files?.[0]; e.currentTarget.value = ''; if (file) readImport(file).catch(error => (app.error = String(error))) }} />
     </header>
 
-    <main id="panel" role={app.tabs.length > 1 ? 'tabpanel' : undefined} aria-labelledby={app.tabs.length > 1 ? `tab-${app.current}` : undefined}>
+    <main id="panel" class:dropping role={app.tabs.length > 1 ? 'tabpanel' : undefined} aria-labelledby={app.tabs.length > 1 ? `tab-${app.current}` : undefined}>
       {#if app.update}
         <div class="update">
           <p>{app.t('ny versjon')}</p>
@@ -208,4 +256,12 @@
     </main>
   {/if}
   <AddTab bind:dialog={addDialog} />
+  <dialog bind:this={importDialog} aria-labelledby="import-question" onclose={() => (importing = null)}>
+    <p id="import-question">{app.t('importspørsmål', { fane: tab?.name ?? '', fil: importing?.file ?? '' })}</p>
+    <div class="actions">
+      <button type="button" class="button" onclick={() => finishImport(null)}>{app.t('avbryt')}</button>
+      <button type="button" class="button" onclick={() => finishImport('replaced')}>{app.t('erstatt')}</button>
+      <button type="button" class="button primary" onclick={() => finishImport('merged')}>{app.t('legg til')}</button>
+    </div>
+  </dialog>
 {/if}

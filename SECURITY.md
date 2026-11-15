@@ -20,6 +20,7 @@ A static app on GitHub Pages at `trix.tazk.no`: no server code, no accounts, no 
 | Colours and font in `Oppsett.md` | CSS injection | CSSOM `setProperty`, only values `CSS.supports` accepts as a colour; font names letters, digits, space, `-`, `_` |
 | File names | Path out of the folder | Plain names with `.md` only (`isFileName`), checked before every read and write |
 | Backup zip | Zip bomb, other file types | `.md` with a plain name only; 500 files and 20 MB in all |
+| Imported files (Word, Excel, RTF, CSV) | Zip bomb, XML entities, huge output | Name and size checked before reading (50 MB); unzip budget shared by all parts, 1000 entries; own XML reader without entities or DTDs; output capped; result shown in the editor, written only on «Lagre» |
 | Another site framing the app | Clickjacking | The app does not start inside a frame (`main.ts`); `frame-ancestors` is not available in a meta CSP |
 | Other apps of the same owner | Read OPFS and the folder handle | Own origin `trix.tazk.no`, no other app on it |
 | Dependencies | Supply chain | Exact versions, `npm audit --audit-level=high` in CI, Dependabot. Accepted: low and moderate advisories in build-time tools (workbox-build, vite-plugin-svelte), whose inputs are this repository's files |

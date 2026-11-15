@@ -207,6 +207,8 @@ kbd {
 .guide h2 { margin-top: 0.5rem; }
 .back-link { display: inline-flex; align-items: center; gap: 0.375rem; min-height: 2.75rem; padding: 0 0.5rem 0 0; border: 0; background: transparent; color: var(--link); }
 
+#panel.dropping { outline: 3px dashed var(--accent); outline-offset: -6px; }
+
 /* Endre rekkefølgen */
 .moving-bar { justify-content: space-between; }
 .moving section { margin-bottom: var(--gap); }

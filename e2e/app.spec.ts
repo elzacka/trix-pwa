@@ -118,6 +118,38 @@ test('move an entry and a group, saved to the file', async ({ page }) => {
   expect(errors).toEqual([])
 })
 
+test('import a file into a tab through the editor', async ({ page }) => {
+  const errors = await start(page)
+  await page.getByRole('tab', { name: 'Oppslag' }).click()
+  const choose = async (name: string, text: string) => {
+    await page.getByRole('button', { name: 'Flere valg' }).click()
+    const chooser = page.waitForEvent('filechooser')
+    await page.getByRole('button', { name: 'Hent innhold fra fil' }).click()
+    await (await chooser).setFiles({ name, mimeType: 'text/plain', buffer: Buffer.from(text) })
+  }
+  await choose('tom.txt', 'bare tekst')
+  await expect(page.getByText('Fant ikke innhold i tom.txt som passer i Oppslag')).toBeVisible()
+  await choose('Priser.csv', 'Vare;Pris\nEple;5\nPære;6\n')
+  await page.getByRole('dialog').getByRole('button', { name: 'Legg til' }).click()
+  await expect(page.getByRole('textbox')).toHaveValue(/### Første oppslag[\s\S]*### Priser\n[\s\S]*\| Eple \| 5 \|/)
+  await page.getByRole('button', { name: 'Lagre' }).click()
+  await page.getByRole('button', { name: /^Priser/ }).click()
+  await expect(page.getByRole('cell', { name: 'Pære' })).toBeVisible()
+
+  // A file dropped on a tab goes into that tab.
+  const transfer = await page.evaluateHandle(() => {
+    const data = new DataTransfer()
+    data.items.add(new File(['### Nytt kort\nForsiden\n'], 'Kort.md', { type: 'text/markdown' }))
+    return data
+  })
+  await page.getByRole('tab', { name: 'Kort' }).dispatchEvent('dragover', { dataTransfer: transfer })
+  await page.getByRole('tab', { name: 'Kort' }).dispatchEvent('drop', { dataTransfer: transfer })
+  await page.getByRole('dialog').getByRole('button', { name: 'Legg til' }).click()
+  await expect(page.getByRole('heading', { name: 'Kort.md' })).toBeVisible()
+  await expect(page.getByRole('textbox')).toHaveValue(/### Nytt kort\nForsiden\n$/)
+  expect(errors).toEqual([])
+})
+
 test('customize: name, tab order, options and a colour, saved to the files', async ({ page }) => {
   const errors = await start(page)
   await page.getByRole('button', { name: 'Flere valg' }).click()

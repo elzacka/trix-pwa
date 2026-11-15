@@ -13,8 +13,8 @@ Live: https://trix.tazk.no/
 
 | Browser | Folder | Survives clearing browser data |
 |---|---|---|
-| Chrome, Edge (desktop), Chrome on Android | `trix-data` in a folder the user picks, Documents first | Yes; only the access must be given again |
-| Safari (macOS, iOS), Firefox | `trix-data` in the browser's private storage (OPFS) | No: the menu makes and restores a zip backup |
+| All, from the first visit | `trix-data` in the browser's private storage (OPFS); a dot on the menu asks the user to decide | No: the menu makes and restores a zip backup |
+| Chrome, Edge (desktop), Chrome on Android, once chosen | `trix-data` in a folder the user picks, Documents first; the files in OPFS are copied there where missing | Yes; only the access must be given again |
 
 The app never sends the files anywhere.
 

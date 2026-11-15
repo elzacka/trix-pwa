@@ -3,9 +3,9 @@
   import { app } from './lib/app.svelte'
   import { IMPORT_TYPES } from './lib/import'
   import { pressedCombo } from './lib/keys'
+  import { canPickFolder } from './lib/storage'
   import { canFloat, doc, float, pip } from './lib/pip.svelte'
   import { count, entryGroups, has, shortcutGroups } from './lib/view'
-  import AddTab from './components/AddTab.svelte'
   import Cards from './components/Cards.svelte'
   import Customize from './components/Customize.svelte'
   import Editor from './components/Editor.svelte'
@@ -16,12 +16,13 @@
   import Move from './components/Move.svelte'
   import Shortcuts from './components/Shortcuts.svelte'
   import Start from './components/Start.svelte'
+  import StorageDialog from './components/StorageDialog.svelte'
 
   let menu = $state<HTMLElement>()
-  let addDialog = $state<HTMLDialogElement>()
   let restoreInput = $state<HTMLInputElement>()
   let importInput = $state<HTMLInputElement>()
   let importDialog = $state<HTMLDialogElement>()
+  let storageDialog = $state<HTMLDialogElement>()
   let importing = $state<{ file: string; merged: string; replaced: string; original: string } | null>(null)
   let dropping = $state(false)
   let notice = $state('')
@@ -42,6 +43,17 @@
     app.error = ''
     notice = ''
     Promise.resolve(action()).catch(error => (app.error = String(error)))
+  }
+
+  /** A folder for the files; the ones in the browser's storage go along. */
+  async function pick() {
+    app.error = notice = ''
+    try {
+      const kept = await app.moveToFolder()
+      if (kept.length) notice = app.t('fantes fra før', { filer: kept.join(', ') })
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') app.error = String(error)
+    }
   }
 
   async function restore(event: Event) {
@@ -178,6 +190,12 @@
     const link = /^#maler(?:\/([\w-]+))?$/.exec(location.hash)
     if (link && app.phase === 'ready') app.library = { pack: link[1] ?? null }
   }
+
+  // Back from a link to the library closes it.
+  function hashChanged() {
+    if (!location.hash && app.library) app.library = null
+    else openLink()
+  }
   $effect(() => {
     if (app.phase === 'ready') openLink()
   })
@@ -192,7 +210,7 @@
   })
 </script>
 
-<svelte:window onhashchange={openLink} onkeydown={keydown} onfocus={reload} ondragover={dragover} ondragleave={dragleave} ondrop={drop} />
+<svelte:window onhashchange={hashChanged} onkeydown={keydown} onfocus={reload} ondragover={dragover} ondragleave={dragleave} ondrop={drop} />
 <svelte:document onvisibilitychange={() => document.visibilityState === 'visible' && reload()} />
 
 {#if app.phase === 'start' || app.phase === 'reconnect'}
@@ -203,7 +221,7 @@
   {:else if app.customizing}
     <Customize />
   {:else if app.library}
-    <Library />
+    {#key app.library}<Library />{/key}
   {:else}
     <header class="bar">
       <img src="{import.meta.env.BASE_URL}favicon.svg" alt="" class="logo" />
@@ -216,22 +234,27 @@
       {:else}
         <h1 class="single">{tab?.name ?? app.setup.name}</h1>
       {/if}
-      <button type="button" class="icon-button more" popovertarget="menu" aria-label={app.t('meny')} title={app.t('meny')}><Icon name="more" /></button>
+      <button type="button" class="icon-button more" popovertarget="menu" aria-label={app.pending ? app.t('meny varsel') : app.t('meny')} title={app.pending ? app.t('meny varsel') : app.t('meny')}><Icon name="more" />{#if app.pending}<span class="badge"></span>{/if}</button>
       <div id="menu" popover bind:this={menu}>
         <ul>
-          {#if tab}<li><button type="button" onclick={() => run(() => app.edit(tab.file))}>{app.t('rediger', { fane: tab.name })}</button></li>{/if}
-          {#if tab}<li><button type="button" onclick={() => run(() => importInput?.click())}>{app.t('hent fil')}</button></li>{/if}
-          {#if movable}<li><button type="button" onclick={() => run(() => startMoving())}>{app.t('rekkefølge')}</button></li>{/if}
-          <li><button type="button" onclick={() => run(() => addDialog?.showModal())}>{app.t('ny fane')}</button></li>
-          <li><button type="button" onclick={() => run(() => (app.library = { pack: null }))}>{app.t('bibliotek')}</button></li>
+          <li>
+            <details class="submenu" open={app.pending}>
+              <summary>{#if app.pending}<span class="badge"></span>{/if}{app.t('data')}</summary>
+              <ul>
+                {#if app.pending}<li class="attention"><button type="button" onclick={() => run(() => storageDialog?.showModal())}><span class="badge"></span>{app.t(canPickFolder() ? 'velg lagring' : 'lagret i nettleseren')}</button></li>{/if}
+                {#if tab}<li><button type="button" onclick={() => run(() => app.edit(tab.file))}>{app.t('rediger', { fane: tab.name })}</button></li>{/if}
+                {#if tab}<li><button type="button" onclick={() => run(() => importInput?.click())}>{app.t('hent fil')}</button></li>{/if}
+                {#if !app.pending && canPickFolder() && !pip.window}<li><button type="button" onclick={() => run(pick)}>{app.t(app.kind === 'mappe' ? 'bytt mappe' : 'velg mappe')}</button></li>{/if}
+                <li><button type="button" onclick={() => run(() => app.backup())}>{app.t('eksporter')}</button></li>
+                <li><button type="button" onclick={() => run(() => restoreInput?.click())}>{app.t('importer')}</button></li>
+              </ul>
+            </details>
+          </li>
           <li><button type="button" onclick={() => run(() => (app.customizing = true))}>{app.t('oppsett')}</button></li>
           {#if pip.window}<li><button type="button" onclick={() => run(() => pip.window?.close())}>{app.t('hovedvindu')}</button></li>
           {:else if canFloat}<li><button type="button" onclick={() => run(() => float(document.getElementById('app')!))}>{app.t('over andre')}</button></li>{/if}
-          <li class="separator"><button type="button" onclick={() => run(() => app.backup())}>{app.t('eksporter')}</button></li>
-          <li><button type="button" onclick={() => run(() => restoreInput?.click())}>{app.t('importer')}</button></li>
-          <li><button type="button" onclick={() => run(() => app.switchFolder())}>{app.t('bytt mappe')}</button></li>
-          <li><a href="https://github.com/elzacka/trix-pwa/blob/main/BRUKERVEILEDNING.md" target="_blank" rel="noopener noreferrer">{app.t('hjelp')}</a></li>
-          <li class="version separator">v{__VERSION__} | elzacka</li>
+          <li class="separator"><a href="https://github.com/elzacka/trix-pwa/blob/main/BRUKERVEILEDNING.md" target="_blank" rel="noopener noreferrer">{app.t('hjelp')}</a></li>
+          <li class="version">v{__VERSION__} | Tazk</li>
         </ul>
       </div>
       <input type="file" accept=".zip,application/zip" hidden bind:this={restoreInput} onchange={restore} />
@@ -260,7 +283,10 @@
               <button type="button" class="icon-button" aria-pressed={capturing} aria-label={app.t('finn tast')} title={app.t('finn tast')}
                 onclick={() => (capturing = !capturing)} onblur={() => (capturing = false)}><Icon name="keyboard" /></button>
             {/if}
+            {#if movable}<button type="button" class="icon-button" aria-pressed={app.moving} aria-label={app.t('rekkefølge')} title={app.t('rekkefølge')} onclick={() => (app.moving ? (app.moving = false) : startMoving())}><Icon name="reorder" /></button>{/if}
           </div>
+        {:else if movable}
+          <div class="tools">{#if movable}<button type="button" class="icon-button" aria-pressed={app.moving} aria-label={app.t('rekkefølge')} title={app.t('rekkefølge')} onclick={() => (app.moving ? (app.moving = false) : startMoving())}><Icon name="reorder" /></button>{/if}</div>
         {/if}
         {#if app.moving}
           <div class="tools moving-bar">
@@ -295,7 +321,7 @@
       {/if}
     </main>
   {/if}
-  <AddTab bind:dialog={addDialog} />
+  <StorageDialog bind:dialog={storageDialog} {pick} />
   <dialog bind:this={importDialog} aria-labelledby="import-question" onclose={() => (importing = null)}>
     <p id="import-question">{app.t('importspørsmål', { fane: tab?.name ?? '', fil: importing?.file ?? '' })}</p>
     <div class="actions">

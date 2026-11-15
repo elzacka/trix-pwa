@@ -5,10 +5,10 @@ import { parseTab, type Module, type Tab } from './content'
 import { currentOs } from './keys'
 import { fileText, type LibraryTemplate } from './library'
 import { linkKind } from './markdown'
-import { doc, pip } from './pip.svelte'
+import { doc } from './pip.svelte'
 import { defaultSetup, parseSetup, SETUP_FILE, type Setup } from './setup'
 import {
-  browserFolder, Changed, Folder, forgetFolder, loadFolder, permission, pickFolder, saveFolder, watch, type FileText, type Kind, type Saved,
+  browserFolder, Changed, Folder, loadFolder, permission, pickFolder, saveFolder, watch, type FileText, type Kind, type Saved,
 } from './storage'
 import { SETUP_TEMPLATE, STARTER, template } from './templates'
 import { fill, isFileName, plain } from './text'
@@ -38,6 +38,8 @@ export interface Editing {
 class App {
   phase = $state<Phase>('loading')
   kind = $state<Kind | null>(null)
+  /** Where the files live is not decided: the app started in the browser's storage. */
+  pending = $state(false)
   setup = $state.raw<Setup>(defaultSetup())
   tabs = $state.raw<Tab[]>([])
   views = $state<View[]>([])
@@ -76,18 +78,19 @@ class App {
     } catch {
       this.saved = null
     }
-    if (!this.saved) return void (this.phase = 'start')
+    // The first visit opens the app at once, in the browser's storage; the menu asks where the files should live.
+    if (!this.saved) return this.choose('nettleser', false)
     const state = await permission(this.saved.dir, false).catch(() => 'denied' as const)
     if (state === 'granted') await this.open(this.saved)
     else this.phase = 'reconnect'
   }
 
   /** From a button: the picker and the permission prompt need the user's click. */
-  async choose(kind: Kind) {
+  async choose(kind: Kind, decided = true) {
     this.error = ''
     try {
       const dir = kind === 'mappe' ? await pickFolder() : await browserFolder()
-      this.saved = { dir, kind }
+      this.saved = { dir, kind, decided }
       await saveFolder(this.saved)
       await this.open(this.saved)
     } catch (error) {
@@ -103,23 +106,36 @@ class App {
     if (state === 'granted') await this.open(this.saved)
   }
 
-  async switchFolder() {
-    pip.window?.close()
-    await forgetFolder()
-    this.unwatch?.()
-    this.unwatch = null
-    this.folder = null
-    this.saved = null
-    this.files = new Map()
-    this.tabs = []
-    this.views = []
+  /** Keeps the files where they are; the menu stops asking. */
+  async decide() {
+    if (!this.saved) return
+    this.saved = { ...this.saved, decided: true }
+    await saveFolder(this.saved)
+    this.pending = false
+  }
+
+  /** From a button: a folder the user picks. Files in the browser's storage go along where the folder lacks them; returns the names it already had. */
+  async moveToFolder(): Promise<string[]> {
+    const dir = await pickFolder()
+    const kept: string[] = []
+    if (this.folder && this.kind === 'nettleser') {
+      const target = new Folder(dir, 'mappe')
+      for (const name of await this.folder.list()) {
+        if (await target.exists(name)) kept.push(name)
+        else await target.write(name, await this.folder.text(name), null)
+      }
+    }
     this.trail = []
-    this.phase = 'start'
+    this.saved = { dir, kind: 'mappe', decided: true }
+    await saveFolder(this.saved)
+    await this.open(this.saved)
+    return kept
   }
 
   private async open(saved: Saved) {
     this.folder = new Folder(saved.dir, saved.kind)
     this.kind = saved.kind
+    this.pending = saved.decided === false
     this.files = new Map()
     try {
       await this.seed()
@@ -352,6 +368,13 @@ class App {
   closeLibrary() {
     this.library = null
     if (location.hash.startsWith('#maler')) history.replaceState(null, '', location.pathname + location.search)
+  }
+
+  /** After a full-panel view closes: focus on the current tab, or the menu button. */
+  async focusBar() {
+    await tick()
+    if (this.library || this.customizing || this.editing) return
+    ;(doc().getElementById(`tab-${this.current}`) ?? doc().querySelector<HTMLElement>('.more'))?.focus()
   }
 
   /** New tabs from the library, each under a free name; the first one is selected. */

@@ -9,11 +9,11 @@ noe sted, og bruker verken informasjonskapsler eller analyseverktøy.
 
 | Nettleser | Hvor filene ligger |
 |---|---|
-| Chrome og Edge på datamaskin, Chrome på Android | Mappa trix-data, der du valgte å legge den |
+| Chrome og Edge på datamaskin, Chrome på Android | I nettleseren til du velger en mappe. Da ligger de i mappa trix-data, der du valgte å legge den |
 | Safari og Firefox | I nettleseren på enheten din |
 
-Du kan endre og slette filene når du vil. I Safari og Firefox forsvinner
-filene hvis du sletter nettleserdata for Trix. Lag en sikkerhetskopi fra
+Du kan endre og slette filene når du vil. Filene i nettleseren forsvinner
+hvis du sletter nettleserdata for Trix. Lag en sikkerhetskopi fra
 menyen hvis du vil beholde dem.
 
 ## Når du åpner Trix

@@ -1,6 +1,6 @@
 <script lang="ts">
   // «Malbibliotek»: packs of templates to add as tabs or download. trix.tazk.no/#maler/<pakke> opens a pack.
-  import { onMount, tick } from 'svelte'
+  import { onDestroy, onMount, tick } from 'svelte'
   import { app } from '../lib/app.svelte'
   import { download } from '../lib/backup'
   import { MODULES, parseTab, type Module } from '../lib/content'
@@ -9,9 +9,8 @@
   import { plain } from '../lib/text'
   import { MODULE_INFO } from '../lib/templates'
 
-  const COUNTED: Record<Module, string> = { hurtigtaster: 'hurtigtaster', oppslag: 'oppslag', kort: 'kort', steg: 'veiledninger' }
   const GROUPS_SHOWN = 4
-  type Preview = { count: number; groups: { title: string; items: string[] }[]; more: number }
+  type Preview = { count: number; groups: { title: string; items: string[]; more: boolean }[]; more: number }
 
   let filter = $state<Module | 'alle'>('alle')
   let previews = $state<Record<string, Preview>>({})
@@ -22,6 +21,8 @@
   const shown = $derived(
     PACKS.map(pack => ({ pack, templates: pack.templates.filter(t => filter === 'alle' || t.module === filter) })).filter(p => p.templates.length),
   )
+
+  onDestroy(() => app.focusBar())
 
   onMount(async () => {
     await tick()
@@ -37,12 +38,13 @@
     const groups: { title: string; items: { title: string }[] }[] = !tab ? [] : tab.module === 'hurtigtaster' ? tab.shortcuts : tab.groups
     previews[template.id] = {
       count: groups.reduce((n, g) => n + g.items.length, 0),
-      groups: groups.slice(0, GROUPS_SHOWN).map(g => ({ title: plain(g.title), items: g.items.slice(0, 3).map(i => plain(i.title)) })),
+      groups: groups.slice(0, GROUPS_SHOWN).map(g => ({ title: plain(g.title), items: g.items.slice(0, 3).map(i => plain(i.title)), more: g.items.length > 3 })),
       more: Math.max(0, groups.length - GROUPS_SHOWN),
     }
   }
 
   async function add(templates: LibraryTemplate[]) {
+    if (busy) return
     busy = true
     error = status = ''
     try {
@@ -71,7 +73,7 @@
   <div class="customize library">
     <p class="hint">{app.t('om biblioteket')}</p>
     <fieldset class="filter">
-      <legend class="sr-only">Modul</legend>
+      <legend class="sr-only">{app.t('modul')}</legend>
       {#each ['alle', ...MODULES] as const as m (m)}
         <label class="tag"><input type="radio" name="library-filter" value={m} bind:group={filter} />{m === 'alle' ? app.t('alle moduler') : MODULE_INFO[m][0]}</label>
       {/each}
@@ -85,7 +87,7 @@
         <p class="hint">{pack.description}</p>
         {#if filter === 'alle' && pack.templates.length > 1}
           <div class="pack-actions">
-            <button type="button" class="button primary" disabled={busy} aria-label="{app.t('legg til alle')}: {pack.name}" onclick={() => add(pack.templates)}>{app.t('legg til alle')}</button>
+            <button type="button" class="button primary" aria-disabled={busy} aria-label="{app.t('legg til alle')}: {pack.name}" onclick={() => add(pack.templates)}>{app.t('legg til alle')}</button>
             <button type="button" class="button" aria-label="{app.t('last ned')} {pack.name} (zip)" onclick={() => savePack(pack)}>{app.t('last ned')}</button>
           </div>
         {/if}
@@ -99,16 +101,16 @@
               </div>
               <div class="template-actions">
                 <button type="button" class="button" aria-expanded={!!open} aria-controls="preview-{template.id}" aria-label="{app.t('forhåndsvis')} {template.name}" onclick={() => preview(template)}>{app.t('forhåndsvis')}</button>
-                <button type="button" class="button" disabled={busy} aria-label="{app.t('legg til')} {template.name}" onclick={() => add([template])}>{app.t('legg til')}</button>
+                <button type="button" class="button" aria-disabled={busy} aria-label="{app.t('legg til')} {template.name}" onclick={() => add([template])}>{app.t('legg til')}</button>
                 <button type="button" class="button" aria-label="{app.t('last ned')} {template.name}" onclick={() => save(template)}>{app.t('last ned')}</button>
               </div>
               <div id="preview-{template.id}" class="preview-box" hidden={!open}>
                 {#if open}
-                  <p><strong>{open.count} {COUNTED[template.module]}</strong></p>
+                  <p><strong>{app.t(`antall ${template.module}`, { antall: open.count })}</strong></p>
                   {#each open.groups as group, i (i)}
-                    <p>{#if group.title}<strong>{group.title}:</strong> {/if}{group.items.join(', ')}{group.items.length ? ' …' : ''}</p>
+                    <p>{#if group.title}<strong>{group.title}:</strong> {/if}{group.items.join(', ')}{group.more ? ' …' : ''}</p>
                   {/each}
-                  {#if open.more}<p class="hint">… og {open.more} grupper til</p>{/if}
+                  {#if open.more}<p class="hint">{app.t('flere grupper', { antall: open.more })}</p>{/if}
                 {/if}
               </div>
             </li>

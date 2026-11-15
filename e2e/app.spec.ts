@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 
-// Chromium gets the browser's private folder from the picker, so the folder path runs without a dialog.
+// The app opens in the browser's storage. Chromium's picker gives the folder `valgt` in that storage, so moving runs without a dialog.
 async function start(page: Page) {
   const errors: string[] = []
   page.on('pageerror', e => errors.push(e.message))
@@ -9,7 +9,7 @@ async function start(page: Page) {
   await page.addInitScript(() => {
     document.addEventListener('securitypolicyviolation', e => console.error(`CSP: ${e.violatedDirective} ${e.blockedURI}`))
     if ('showDirectoryPicker' in window) {
-      Object.assign(window, { showDirectoryPicker: async () => navigator.storage.getDirectory() })
+      Object.assign(window, { showDirectoryPicker: async () => (await navigator.storage.getDirectory()).getDirectoryHandle('valgt', { create: true }) })
     }
   })
   // WebKit shares OPFS between profiles: start from an empty folder.
@@ -20,7 +20,6 @@ async function start(page: Page) {
     await new Promise(done => Object.assign(indexedDB.deleteDatabase('trix'), { onsuccess: done, onerror: done, onblocked: done }))
   })
   await page.goto('./')
-  await page.getByRole('button', { name: /Velg mappe|Fortsett/ }).click()
   const alert = page.getByRole('alert')
   await expect(page.getByRole('tab', { name: 'Oppslag' }).or(alert)).toBeVisible()
   if (await alert.isVisible()) throw new Error(`Start failed: ${await alert.textContent()}`)
@@ -32,6 +31,43 @@ test('first start makes one tab per module, and they survive a reload', async ({
   await expect(page.getByRole('tab')).toHaveText(['Hurtigtaster', 'Oppslag', 'Kort', 'Steg'])
   await page.reload()
   await expect(page.getByRole('tab', { name: 'Steg' })).toBeVisible()
+  expect(errors).toEqual([])
+})
+
+test('the app opens at once; the menu asks where the files live, and moving keeps the changes', async ({ page }) => {
+  const errors = await start(page)
+  const menu = page.getByRole('button', { name: 'Flere valg, ett valg venter på deg' })
+  await expect(menu).toBeVisible()
+  const folder = await page.evaluate(() => 'showDirectoryPicker' in window)
+  if (!folder) {
+    await menu.click()
+    await page.getByRole('button', { name: 'Filene ligger i nettleseren' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Forstått' }).click()
+  } else {
+    // A change made before moving goes along.
+    await page.getByRole('button', { name: 'Flere valg, ett valg venter på deg' }).click()
+    await page.getByRole('button', { name: 'Endre innhold i Hurtigtaster' }).click()
+    const editor = page.getByRole('textbox')
+    await editor.fill((await editor.inputValue()).replace('- Søk | ctrl F | ⌘F', '- Finn noe | ctrl F | ⌘F'))
+    await page.getByRole('button', { name: 'Lagre' }).click()
+    await menu.click()
+    await page.getByRole('button', { name: 'Velg hvor filene skal ligge' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Velg mappe' }).click()
+    await expect(page.getByRole('button', { name: 'Flere valg', exact: true })).toBeVisible()
+    await expect(page.getByText('Finn noe')).toBeVisible()
+    expect(await page.evaluate(async () => {
+      const dir = await (await (await navigator.storage.getDirectory()).getDirectoryHandle('valgt')).getDirectoryHandle('trix-data')
+      return (await (await dir.getFileHandle('Hurtigtaster.md')).getFile()).text()
+    })).toContain('Finn noe')
+    await page.getByRole('button', { name: 'Flere valg', exact: true }).click()
+    await page.locator('#menu summary').click()
+    await expect(page.getByRole('button', { name: 'Bytt mappe' })).toBeVisible()
+    await page.keyboard.press('Escape')
+  }
+  await expect(page.getByRole('button', { name: 'Flere valg', exact: true })).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('tab', { name: 'Oppslag' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Flere valg', exact: true })).toBeVisible()
   expect(errors).toEqual([])
 })
 
@@ -78,19 +114,17 @@ test('edit and save a file, then add a tab', async ({ page }) => {
   await page.getByRole('button', { name: 'Lagre' }).click()
   await expect(page.getByText('Finn noe')).toBeVisible()
 
+  // New tabs are added in «Tilpass appen», which shows them at once; the library is one step away.
   await page.getByRole('button', { name: 'Flere valg' }).click()
+  await page.getByRole('button', { name: 'Tilpass appen' }).click()
   await page.getByRole('button', { name: 'Legg til fane' }).click()
-  await page.getByLabel('Navn').fill('Telefonliste')
+  await page.getByRole('dialog').getByLabel('Navn').fill('Telefonliste')
   await page.getByRole('dialog').getByRole('button', { name: 'Legg til fane' }).click()
-  await expect(page.getByRole('tab', { name: 'Telefonliste' })).toHaveAttribute('aria-selected', 'true')
-
-  // Ready-made content is in the library, one step from the dialog.
-  await page.getByRole('button', { name: 'Flere valg' }).click()
-  await page.getByRole('button', { name: 'Legg til fane' }).click()
+  await expect(page.getByText('Telefonliste.md')).toBeVisible()
   await page.getByRole('button', { name: 'Velg fra malbiblioteket' }).click()
   await expect(page.getByRole('heading', { name: 'Malbibliotek', level: 1 })).toBeFocused()
   await page.getByRole('button', { name: 'Legg til Chrome' }).click()
-  await expect(page.getByText('Lagt til som fane: Chrome')).toBeVisible()
+  await expect(page.getByText('Lagt til: Chrome')).toBeVisible()
   await page.getByRole('button', { name: 'Lukk' }).click()
   await expect(page.getByRole('tab', { name: 'Chrome' })).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('heading', { name: 'Faner' })).toBeVisible()
@@ -113,7 +147,6 @@ test('look up a shortcut by pressing it', async ({ page }) => {
 test('move an entry and a group, saved to the file', async ({ page }) => {
   const errors = await start(page)
   await page.getByRole('tab', { name: 'Kort' }).click()
-  await page.getByRole('button', { name: 'Flere valg' }).click()
   await page.getByRole('button', { name: 'Endre rekkefølgen' }).click()
   await expect(page.getByRole('button', { name: 'Ferdig' })).toBeFocused()
   await page.getByRole('button', { name: 'Flytt Kort 3 opp' }).click()
@@ -229,9 +262,11 @@ test('the app floats above other windows and comes back as it was', async ({ pag
   expect(violations.map(v => v.id)).toEqual([])
   const pip2 = await again
   await pip2.getByRole('button', { name: 'Flere valg' }).click()
+  await pip2.getByRole('button', { name: 'Tilpass appen' }).click()
   await pip2.getByRole('button', { name: 'Legg til fane' }).click()
   await page.getByRole('button', { name: 'Vis Trix her' }).click()
   await expect(page.locator('dialog[open], :popover-open')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Avbryt' }).click()
   await page.keyboard.press(mac ? 'Meta+KeyF' : 'Control+KeyF')
   await expect(page.getByRole('searchbox')).toBeFocused()
   await expect(page.getByRole('tab', { name: 'Oppslag' })).toBeVisible()
@@ -240,13 +275,16 @@ test('the app floats above other windows and comes back as it was', async ({ pag
 
 test('the template library: a link to a pack, add, download, filter and preview', async ({ page }) => {
   const errors = await start(page)
-  await page.goto('./#maler/nettleseren')
-  await expect(page.getByRole('heading', { name: 'Nettleseren' })).toBeFocused()
+  await page.goto('./#maler/microsoft-365')
+  await expect(page.getByRole('heading', { name: 'Microsoft 365', level: 2 })).toBeFocused()
   await page.getByRole('button', { name: 'Legg til alle: Nettleseren' }).click()
-  await expect(page.getByText('Lagt til som fane: Chrome, Edge')).toBeVisible()
+  await expect(page.getByText('Lagt til: Chrome, Edge')).toBeVisible()
   // A name in use gets a number; nothing is overwritten.
-  await page.getByRole('button', { name: 'Legg til Chrome' }).click()
-  await expect(page.getByText('Lagt til som fane: Chrome 2')).toBeVisible()
+  // By keyboard, focus stays on the button.
+  await page.getByRole('button', { name: 'Legg til Chrome' }).focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByText('Lagt til: Chrome 2')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Legg til Chrome' })).toBeFocused()
   const saved = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Last ned Nettleseren (zip)' }).click()
   expect((await saved).suggestedFilename()).toBe('Nettleseren.zip')
@@ -254,9 +292,17 @@ test('the template library: a link to a pack, add, download, filter and preview'
   await expect(page.getByRole('heading', { name: 'Nettleseren' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Forhåndsvis Eiendom, bygg og anlegg' }).click()
   await expect(page.getByText('275 oppslag')).toBeVisible()
+  // A link to a pack while the library is open shows the pack, whatever the filter.
+  await page.goto('./#maler/nettleseren')
+  await expect(page.getByRole('heading', { name: 'Nettleseren' })).toBeFocused()
   await page.keyboard.press('Escape')
-  await expect(page.getByRole('tab', { name: 'Chrome 2' })).toBeVisible()
+  await expect(page.getByRole('tab', { name: 'Chrome 2' })).toBeFocused()
   expect(page.url()).not.toContain('#maler')
+  // Back from a link closes the library.
+  await page.goto('./#maler/microsoft-365')
+  await expect(page.getByRole('heading', { name: 'Microsoft 365', level: 2 })).toBeFocused()
+  await page.goBack()
+  await expect(page.getByRole('heading', { name: 'Malbibliotek', level: 1 })).toHaveCount(0)
   // The link works from a cold start too.
   await page.goto('./#maler')
   await page.reload()
@@ -331,7 +377,6 @@ test('no WCAG 2.2 AA violations on any tab, an open entry, the editor or the for
   await page.getByText('Mer om dette').click()
   await check('åpent oppslag')
   await page.getByRole('tab', { name: 'Hurtigtaster' }).click()
-  await page.getByRole('button', { name: 'Flere valg' }).click()
   await page.getByRole('button', { name: 'Endre rekkefølgen' }).click()
   await check('endre rekkefølgen')
   await page.getByRole('button', { name: 'Ferdig' }).click()
@@ -342,7 +387,8 @@ test('no WCAG 2.2 AA violations on any tab, an open entry, the editor or the for
   await check('editor')
   await page.getByRole('button', { name: 'Avbryt' }).click()
   await page.getByRole('button', { name: 'Flere valg' }).click()
-  await page.getByRole('button', { name: 'Malbibliotek' }).click()
+  await page.getByRole('button', { name: 'Tilpass appen' }).click()
+  await page.getByRole('button', { name: 'Velg fra malbiblioteket' }).click()
   await page.getByRole('button', { name: 'Forhåndsvis Chrome' }).click()
   await check('malbibliotek')
   await page.getByRole('button', { name: 'Lukk' }).click()

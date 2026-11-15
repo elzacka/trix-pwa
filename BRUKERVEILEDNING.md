@@ -8,13 +8,17 @@ som du eier.
 
 ## Kom i gang
 
-1. Åpne [trix.tazk.no](https://trix.tazk.no/).
-2. Velg hvor filene skal ligge:
+1. Åpne [trix.tazk.no](https://trix.tazk.no/). Trix lager én fane per
+   modul med eksempler som viser hva fanen kan inneholde. Endre eller slett
+   dem som du vil.
+2. Filene ligger først i nettleseren. En prikk på menyknappen viser at du
+   har et valg å ta: Åpne **Databehandling** og velg **Velg hvor filene skal
+   ligge**.
    - Chrome og Edge på datamaskin, Chrome på Android: Velg **Velg mappe** og
-     deretter Dokumenter eller en annen mappe. Trix lager mappa trix-data der.
-   - Safari og Firefox: Velg **Fortsett**. Filene ligger da i nettleseren.
-3. Trix lager én fane per modul med eksempler som viser hva fanen kan
-   inneholde. Endre eller slett dem som du vil.
+     deretter Dokumenter eller en annen mappe. Trix lager mappa trix-data der
+     og tar med filene dit. Du kan også beholde filene i nettleseren.
+   - Safari og Firefox: Filene blir liggende i nettleseren. Lag en
+     sikkerhetskopi med jevne mellomrom.
 
 Hvis nettleseren spør om Trix skal få bruke mappa, velger du å tillate det
 ved hvert besøk.
@@ -65,27 +69,33 @@ du vil ha Trix tilbake der det var.
 
 ## Endre innholdet
 
-Åpne menyen øverst til høyre:
+Menyen øverst til høyre har to deler:
 
-- **Endre innhold i …**: Endrer fila til fanen du står i. Øverst i fila
-  står det hvordan du skriver grupper, oppslag, lister, bokser og lenker.
-- **Legg til fane**: Lager en tom fane fra modulen du velger.
-- **Malbibliotek**: Ferdige maler og malpakker etter tema, for eksempel
-  hurtigtastene i Chrome og Edge eller ordlister. Velg **Forhåndsvis** for å
-  se hva en mal inneholder, og **Legg til** for å få den som fane. Fanen blir
-  din egen fil, som du kan endre som du vil. Med **Last ned** får du fila
-  eller hele pakken som zip. Lenken
-  [trix.tazk.no/#maler](https://trix.tazk.no/#maler) åpner biblioteket.
-- **Hent innhold fra fil**: Henter innhold fra Word (.docx), RTF, Excel
-  (.xlsx), CSV, Markdown eller ren tekst inn i fanen. Du kan også dra en fil
-  til fanen. Trix viser resultatet i redigeringen, og fila endres først når
-  du velger **Lagre**.
-- **Endre rekkefølgen**: Flytter grupper og oppslag opp og ned med pilene.
-  Trix lagrer hver flytting med en gang. Valget finnes i faner som ikke
-  sorterer A–Å.
-- **Tilpass appen**: Endrer navnet på appen, rekkefølgen på fanene, valgene
-  for hver fane, fargene, skriften og tekstene. Trix viser fargene med en
-  gang og sier fra hvis teksten blir vanskelig å lese.
+- **Databehandling**:
+  - **Endre innhold i …**: Endrer fila til fanen du står i. Øverst i fila
+    står det hvordan du skriver grupper, oppslag, lister, bokser og lenker.
+  - **Hent innhold fra fil**: Henter innhold fra Word (.docx), RTF, Excel
+    (.xlsx), CSV, Markdown eller ren tekst inn i fanen. Du kan også dra en
+    fil til fanen. Trix viser resultatet i redigeringen, og fila endres
+    først når du velger **Lagre**.
+  - Valgene for filene, se [Ta vare på filene](#ta-vare-på-filene).
+- **Tilpass appen**: Endrer navnet på appen, fanene, fargene, skriften og
+  tekstene. Under **Faner** endrer du rekkefølgen og valgene for hver fane,
+  og der legger du til faner:
+  - **Legg til fane**: Lager en fane med eksempler fra modulen du velger.
+  - **Velg fra malbiblioteket**: Ferdige maler og malpakker etter tema, for
+    eksempel hurtigtastene i Chrome og Edge eller ordlister. Velg
+    **Forhåndsvis** for å se hva en mal inneholder, og **Legg til** for å
+    få den som fane. Fanen blir din egen fil, som du kan endre som du vil.
+    Med **Last ned** får du fila eller hele pakken som zip. Lenken
+    [trix.tazk.no/#maler](https://trix.tazk.no/#maler) åpner biblioteket.
+
+  Trix viser fargene med en gang og sier fra hvis teksten blir vanskelig å
+  lese.
+
+Knappen med to piler ved søkefeltet flytter grupper og oppslag opp og ned.
+Trix lagrer hver flytting med en gang. Knappen finnes i faner som ikke
+sorterer A–Å.
 
 Du kan også endre filene i trix-data i et annet program. Chrome og Edge
 viser endringene med en gang. I andre nettlesere leser Trix filene på nytt
@@ -103,11 +113,14 @@ når du går tilbake til appen.
 
 ## Ta vare på filene
 
+Under **Databehandling** i menyen:
+
 - **Lag sikkerhetskopi**: Laster ned alle filene som én zip-fil.
 - **Hent sikkerhetskopi**: Erstatter filene med samme navn med filene i
   zip-fila.
-- **Bytt mappe**: Trix glemmer mappa og viser startsiden, så du kan velge
-  en annen. Filene blir liggende.
+- **Velg mappe** og **Bytt mappe**: Velger en annen mappe for filene. Fra
+  nettleseren tar Trix med filene til mappa. En fil som allerede finnes i
+  mappa, blir ikke endret. Finnes i Chrome og Edge.
 
 Filene i nettleseren forsvinner hvis du sletter nettleserdata for Trix. Lag
 en sikkerhetskopi med jevne mellomrom hvis du bruker Safari eller Firefox.

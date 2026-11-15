@@ -134,8 +134,8 @@ async function transact<T>(mode: IDBTransactionMode, run: (store: IDBObjectStore
   }).finally(() => database.close()) as Promise<T>
 }
 
-export type Saved = { dir: FileSystemDirectoryHandle; kind: Kind }
+/** `decided: false`: the app chose the browser's storage itself, and the menu asks the user. */
+export type Saved = { dir: FileSystemDirectoryHandle; kind: Kind; decided?: boolean }
 
 export const saveFolder = (saved: Saved) => transact('readwrite', s => s.put(saved, 'valgt'))
 export const loadFolder = () => transact<Saved | undefined>('readonly', s => s.get('valgt'))
-export const forgetFolder = () => transact('readwrite', s => s.delete('valgt'))

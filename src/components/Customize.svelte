@@ -1,6 +1,6 @@
 <script lang="ts">
   // «Tilpass appen»: Oppsett.md and the tabs' options as a form. The app shows each change at once; «Lagre» writes the files.
-  import { onDestroy, tick } from 'svelte'
+  import { onDestroy, tick, untrack } from 'svelte'
   import { app } from '../lib/app.svelte'
   import { doc } from '../lib/pip.svelte'
   import type { Option } from '../lib/content'
@@ -8,6 +8,7 @@
   import { COLORS, FONT, FONT_SIZE, SETUP_FILE, type ColorName } from '../lib/setup'
   import { TEXTS, type TextKey } from '../lib/texts'
   import { applyTheme, hex } from '../lib/theme'
+  import AddTab from './AddTab.svelte'
   import Icon from './Icon.svelte'
 
   const COLOR_NAMES: Record<ColorName, string> = {
@@ -17,20 +18,39 @@
   const OPTION_NAMES: Record<Option, string> = { søk: 'Søk', emneknagger: 'Emneknagger', 'a–å': 'Sorter A–Å' }
   const TEXT_KEYS = (Object.keys(TEXTS) as TextKey[]).filter(k => k !== 'navn')
 
-  const before = draftOf(app.setup, app.tabs, hex)
-  let draft = $state(structuredClone(before))
+  const initial = draftOf(app.setup, app.tabs, hex)
+  let before = $state.raw(initial)
+  let draft = $state(structuredClone(initial))
+  let addDialog = $state<HTMLDialogElement>()
   let warnings = $state<string[]>([])
   let error = $state('')
   let discarding = $state(false)
   let form: HTMLFormElement
 
   const dirty = $derived(JSON.stringify(draft) !== JSON.stringify(before))
+
+  // A tab added from here, or a file changed elsewhere, shows in the form while it holds no changes.
+  $effect(() => {
+    const fresh = draftOf(app.setup, app.tabs, hex)
+    if (untrack(() => !dirty)) {
+      before = fresh
+      draft = structuredClone(fresh)
+    }
+  })
+
+  function openLibrary() {
+    app.customizing = false
+    app.library = { pack: null }
+  }
   const tabOf = (file: string) => draft.tabs.find(t => t.file === file)!
 
   $effect(() => {
     warnings = applyTheme(previewOf(app.setup, before, draft)).map(w => w.replace(`${SETUP_FILE}: `, ''))
   })
-  onDestroy(() => applyTheme(app.setup))
+  onDestroy(() => {
+    applyTheme(app.setup)
+    app.focusBar()
+  })
 
   async function move(index: number, by: -1 | 1) {
     const order = draft.order
@@ -135,6 +155,11 @@
           </li>
         {/each}
       </ol>
+      <div class="pack-actions">
+        <button type="button" class="button" disabled={dirty} onclick={() => addDialog?.showModal()}>{app.t('ny fane')}</button>
+        <button type="button" class="button" disabled={dirty} onclick={openLibrary}>{app.t('fra biblioteket')}</button>
+      </div>
+      {#if dirty}<p class="hint">{app.t('lagre først')}</p>{/if}
     </section>
 
     <section aria-labelledby="c-colors">
@@ -175,3 +200,5 @@
     {#if !dirty}<p><button type="button" class="button" onclick={asText}>Endre {SETUP_FILE} som tekst</button></p>{/if}
   </form>
 </section>
+
+<AddTab bind:dialog={addDialog} />

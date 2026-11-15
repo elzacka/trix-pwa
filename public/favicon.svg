@@ -1,8 +1,9 @@
-<!-- "blocks" from Tabler Icons, MIT License: browser tab, in-app logo and the app icon at 16–48 px: tile edge to edge, bolder stroke -->
+<!-- Trix: three blocks and one lifted out, white and amber on petrol. Tab, header logo, 16–48 px: tile edge to edge, larger blocks. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 24 24">
-  <rect x="0.5" y="0.5" width="23" height="23" rx="5.5" fill="#0a78b8"/>
-  <g transform="translate(12 12) scale(0.8) translate(-12 -12)" fill="none" stroke="#ffffff" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M3 14h12a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h3a2 2 0 0 1 2 2v12"/>
-    <path d="M14 4a1 1 0 0 1 1 -1h5a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-5a1 1 0 0 1 -1 -1l0 -5" fill="#ffffff"/>
-  </g>
+  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b5d88"/><stop offset="1" stop-color="#00385a"/></linearGradient></defs>
+  <rect x="0.5" y="0.5" width="23" height="23" rx="5.5" fill="url(#g)"/>
+    <rect x="4.45" y="6.35" width="5.8" height="5.8" rx="1.5" fill="#ffffff"/>
+    <rect x="4.45" y="13.75" width="5.8" height="5.8" rx="1.5" fill="#ffffff"/>
+    <rect x="11.85" y="13.75" width="5.8" height="5.8" rx="1.5" fill="#ffffff"/>
+    <rect x="13.75" y="4.45" width="5.8" height="5.8" rx="1.5" fill="#f5b041"/>
 </svg>

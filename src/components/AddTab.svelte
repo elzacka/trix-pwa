@@ -34,7 +34,6 @@
         </label>
       {/each}
     </fieldset>
-    <p><button type="button" class="link-button" onclick={() => { dialog?.close(); app.library = { pack: null } }}>{app.t('fra biblioteket')}</button></p>
     {#if error}<p class="error" role="alert">{error}</p>{/if}
     <div class="actions">
       <button type="button" class="button" onclick={() => dialog?.close()}>{app.t('avbryt')}</button>

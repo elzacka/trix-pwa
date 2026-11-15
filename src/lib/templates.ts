@@ -5,13 +5,11 @@ import hurtigtaster from '../templates/hurtigtaster.md?raw'
 import oppslag from '../templates/oppslag.md?raw'
 import kort from '../templates/kort.md?raw'
 import steg from '../templates/steg.md?raw'
-import chrome from '../templates/bibliotek/hurtigtaster-chrome.md?raw'
-import edge from '../templates/bibliotek/hurtigtaster-edge.md?raw'
 import type { Module } from './content'
 
 export const SETUP_TEMPLATE = setup
 
-const MODULE_TEMPLATES: Record<Module, string> = { hurtigtaster, oppslag, kort, steg }
+export const MODULE_TEMPLATES: Record<Module, string> = { hurtigtaster, oppslag, kort, steg }
 
 /** The first files in an empty folder: one tab per module. */
 export const STARTER: Record<string, Module> = {
@@ -23,10 +21,10 @@ export const STARTER: Record<string, Module> = {
 
 export const template = (module: Module, name: string) => MODULE_TEMPLATES[module].replaceAll('{navn}', name)
 
-/** Ready-made lists to start a tab from. */
-export const LIBRARY = {
-  chrome: { name: 'Chrome', description: 'Hurtigtastene i Google Chrome', module: 'hurtigtaster', text: chrome },
-  edge: { name: 'Edge', description: 'Hurtigtastene i Microsoft Edge', module: 'hurtigtaster', text: edge },
-} as const satisfies Record<string, { name: string; description: string; module: Module; text: string }>
-
-export type LibraryKey = keyof typeof LIBRARY
+/** Each module's name and what it shows. */
+export const MODULE_INFO: Record<Module, [string, string]> = {
+  hurtigtaster: ['Hurtigtaster', 'Handlinger med tastene for Windows og Mac'],
+  oppslag: ['Oppslag', 'Ord og begreper med forklaring'],
+  kort: ['Kort', 'Kort med forside og bakside'],
+  steg: ['Steg', 'Veiledninger delt i steg'],
+}

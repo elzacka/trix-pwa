@@ -1,0 +1,6 @@
+navn: Microsoft 365
+beskrivelse: Ord og begreper i Microsoft 365
+maler:
+  - fil: ordliste.md
+    navn: Microsoft 365
+    modul: oppslag

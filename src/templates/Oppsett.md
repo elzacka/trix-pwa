@@ -31,6 +31,7 @@ alt dette i «Tilpass appen» i menyen.
   - Nøkler: søk, tøm søk, finn tast, trykk tast, treff, ingen treff, tom, vis alt, merket, fjern merke, også, engelsk, tilbake,
     tilbake til, bli her, faner, meny, rediger, ny fane, hent fil, passer ikke, importspørsmål, legg til, erstatt,
     rekkefølge, flytt opp, flytt ned,
-    ferdig, ikke flyttet, oppsett, eksporter, importer, bytt mappe, over andre, hovedvindu, eget vindu, vis her,
+    ferdig, ikke flyttet, oppsett, eksporter, importer, bytt mappe, bibliotek, om biblioteket, fra biblioteket,
+    alle moduler, legg til alle, last ned, forhåndsvis, lukk, lagt til, over andre, hovedvindu, eget vindu, vis her,
     hjelp, lagre, avbryt, forkast, endret utenfor, ny versjon, oppdater, snu kort
 -->

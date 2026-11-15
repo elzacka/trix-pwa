@@ -10,6 +10,7 @@
   import Customize from './components/Customize.svelte'
   import Editor from './components/Editor.svelte'
   import Guides from './components/Guides.svelte'
+  import Library from './components/Library.svelte'
   import Icon from './components/Icon.svelte'
   import Lookup from './components/Lookup.svelte'
   import Move from './components/Move.svelte'
@@ -69,7 +70,7 @@
     importDialog?.close()
   }
 
-  const canDrop = () => app.phase === 'ready' && !!app.tab && !app.editing && !app.customizing && !doc().querySelector('dialog[open]')
+  const canDrop = () => app.phase === 'ready' && !!app.tab && !app.editing && !app.customizing && !app.library && !doc().querySelector('dialog[open]')
   const files = (event: DragEvent) => event.dataTransfer?.types.includes('Files') ?? false
 
   // Anything else dropped, such as a link, would make the browser leave the app and lose unsaved text.
@@ -147,7 +148,8 @@
   function keydown(event: KeyboardEvent) {
     // While the app floats, the main window shows only the way back.
     if (event.currentTarget !== (pip.window ?? window)) return
-    if (app.phase !== 'ready' || app.editing || app.customizing || doc().querySelector('dialog[open]')) return
+    if (app.library && event.key === 'Escape' && !event.defaultPrevented && !doc().querySelector('dialog[open]')) return app.closeLibrary()
+    if (app.phase !== 'ready' || app.editing || app.customizing || app.library || doc().querySelector('dialog[open]')) return
     if (capturing) return capture(event)
     const mod = app.os === 'mac' ? event.metaKey : event.ctrlKey
     if (mod && /^[1-9]$/.test(event.key)) {
@@ -171,6 +173,15 @@
   // The files are the user's: read them again when the app comes back into view.
   const reload = () => app.phase === 'ready' && !app.editing && !app.customizing && app.load().catch(error => (app.error = String(error)))
 
+  // trix.tazk.no/#maler and #maler/<pakke> open the library once a folder is open.
+  function openLink() {
+    const link = /^#maler(?:\/([\w-]+))?$/.exec(location.hash)
+    if (link && app.phase === 'ready') app.library = { pack: link[1] ?? null }
+  }
+  $effect(() => {
+    if (app.phase === 'ready') openLink()
+  })
+
   // In the floating window, keys, focus and drops reach that window, not this one.
   $effect(() => {
     const win = pip.window
@@ -181,7 +192,7 @@
   })
 </script>
 
-<svelte:window onkeydown={keydown} onfocus={reload} ondragover={dragover} ondragleave={dragleave} ondrop={drop} />
+<svelte:window onhashchange={openLink} onkeydown={keydown} onfocus={reload} ondragover={dragover} ondragleave={dragleave} ondrop={drop} />
 <svelte:document onvisibilitychange={() => document.visibilityState === 'visible' && reload()} />
 
 {#if app.phase === 'start' || app.phase === 'reconnect'}
@@ -191,6 +202,8 @@
     <Editor editing={app.editing} />
   {:else if app.customizing}
     <Customize />
+  {:else if app.library}
+    <Library />
   {:else}
     <header class="bar">
       <img src="{import.meta.env.BASE_URL}favicon.svg" alt="" class="logo" />
@@ -210,6 +223,7 @@
           {#if tab}<li><button type="button" onclick={() => run(() => importInput?.click())}>{app.t('hent fil')}</button></li>{/if}
           {#if movable}<li><button type="button" onclick={() => run(() => startMoving())}>{app.t('rekkefølge')}</button></li>{/if}
           <li><button type="button" onclick={() => run(() => addDialog?.showModal())}>{app.t('ny fane')}</button></li>
+          <li><button type="button" onclick={() => run(() => (app.library = { pack: null }))}>{app.t('bibliotek')}</button></li>
           <li><button type="button" onclick={() => run(() => (app.customizing = true))}>{app.t('oppsett')}</button></li>
           {#if pip.window}<li><button type="button" onclick={() => run(() => pip.window?.close())}>{app.t('hovedvindu')}</button></li>
           {:else if canFloat}<li><button type="button" onclick={() => run(() => float(document.getElementById('app')!))}>{app.t('over andre')}</button></li>{/if}

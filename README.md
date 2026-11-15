@@ -1,10 +1,11 @@
 # Trix PWA
 
-An app for quick reference that installs from the browser and works
-offline. Four modules, each shown as a tab: shortcuts
-(`hurtigtaster`), lookup (`oppslag`), flip cards (`kort`) and step-by-step
-guides (`steg`). Setup and content are plain Markdown files in a folder
-named `trix-data`.
+An app shell for building your own productivity app. Four modules, each
+tab one of them: shortcuts (`hurtigtaster`), lookup (`oppslag`), flip cards
+(`kort`) and step-by-step guides (`steg`). Start from the templates and
+themed packs in the app's library (`trix.tazk.no/#maler`), then change
+anything: setup and content are plain Markdown files in a folder named
+`trix-data`. Installs from the browser and works offline.
 
 Live: https://trix.tazk.no/
 
@@ -25,8 +26,12 @@ The app never sends the files anywhere.
   ([src/templates/Oppsett.md](src/templates/Oppsett.md)).
 - One `.md` per tab. YAML at the top names the module (`modul: oppslag`); a
   file without it is not a tab. Format: each template in
-  [src/templates/](src/templates/); ready-made lists in
-  [src/templates/bibliotek/](src/templates/bibliotek/).
+  [src/templates/](src/templates/).
+- Template library («Malbibliotek», `#maler`, `#maler/<pack>`): one folder
+  per pack in [src/templates/bibliotek/](src/templates/bibliotek/), with
+  `pakke.yaml` naming the pack and each template's file, tab name and
+  module. A new pack is a folder and a push; `tests/library.test.ts` checks
+  every template.
 
 ## Develop
 

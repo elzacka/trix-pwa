@@ -3,6 +3,7 @@
 import { tick } from 'svelte'
 import { parseTab, type Module, type Tab } from './content'
 import { currentOs } from './keys'
+import { fileText, type LibraryTemplate } from './library'
 import { linkKind } from './markdown'
 import { doc, pip } from './pip.svelte'
 import { defaultSetup, parseSetup, SETUP_FILE, type Setup } from './setup'
@@ -47,6 +48,8 @@ class App {
   editing = $state.raw<Editing | null>(null)
   customizing = $state(false)
   moving = $state(false)
+  /** The template library is open; `pack` is the pack a link pointed to. */
+  library = $state.raw<{ pack: string | null } | null>(null)
   update = $state.raw<(() => void) | null>(null)
   readonly os = currentOs()
 
@@ -344,6 +347,25 @@ class App {
     await this.load()
     this.select(this.tabs.findIndex(tab => tab.file === file))
     return null
+  }
+
+  closeLibrary() {
+    this.library = null
+    if (location.hash.startsWith('#maler')) history.replaceState(null, '', location.pathname + location.search)
+  }
+
+  /** New tabs from the library, each under a free name; the first one is selected. */
+  async addTemplates(templates: LibraryTemplate[]): Promise<string[]> {
+    const names: string[] = []
+    for (const template of templates) {
+      let name = template.name
+      for (let n = 2; await this.folder!.exists(`${name}.md`); n++) name = `${template.name} ${n}`
+      await this.folder!.write(`${name}.md`, await fileText(template, name), null)
+      names.push(name)
+    }
+    await this.load()
+    this.select(this.tabs.findIndex(tab => tab.file === `${names[0]}.md`))
+    return names
   }
 
   async backup() {

@@ -1,0 +1,6 @@
+navn: Digitalisering og KI
+beskrivelse: Ord og begreper om digitalisering og kunstig intelligens
+maler:
+  - fil: ordliste.md
+    navn: Digitalisering og KI
+    modul: oppslag

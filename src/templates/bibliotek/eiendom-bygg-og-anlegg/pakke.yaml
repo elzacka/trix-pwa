@@ -1,0 +1,6 @@
+navn: Eiendom, bygg og anlegg
+beskrivelse: Ord og begreper fra eiendom, bygg og anlegg
+maler:
+  - fil: ordliste.md
+    navn: Eiendom, bygg og anlegg
+    modul: oppslag

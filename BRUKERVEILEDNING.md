@@ -69,8 +69,13 @@ du vil ha Trix tilbake der det var.
 
 - **Endre innhold i …**: Endrer fila til fanen du står i. Øverst i fila
   står det hvordan du skriver grupper, oppslag, lister, bokser og lenker.
-- **Legg til fane**: Lager en ny fane fra modulen du velger, eller fra en
-  ferdig liste med hurtigtastene i Chrome eller Edge.
+- **Legg til fane**: Lager en tom fane fra modulen du velger.
+- **Malbibliotek**: Ferdige maler og malpakker etter tema, for eksempel
+  hurtigtastene i Chrome og Edge eller ordlister. Velg **Forhåndsvis** for å
+  se hva en mal inneholder, og **Legg til** for å få den som fane. Fanen blir
+  din egen fil, som du kan endre som du vil. Med **Last ned** får du fila
+  eller hele pakken som zip. Lenken
+  [trix.tazk.no/#maler](https://trix.tazk.no/#maler) åpner biblioteket.
 - **Hent innhold fra fil**: Henter innhold fra Word (.docx), RTF, Excel
   (.xlsx), CSV, Markdown eller ren tekst inn i fanen. Du kan også dra en fil
   til fanen. Trix viser resultatet i redigeringen, og fila endres først når

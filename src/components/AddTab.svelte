@@ -1,26 +1,18 @@
 <script lang="ts">
-  // «Legg til fane»: a new file from the module's template.
+  // «Legg til fane»: a new file from the module's template; ready-made content is in the library.
   import { app } from '../lib/app.svelte'
   import { MODULES, type Module } from '../lib/content'
-  import { LIBRARY, type LibraryKey } from '../lib/templates'
+  import { MODULE_INFO } from '../lib/templates'
 
   let { dialog = $bindable() }: { dialog?: HTMLDialogElement } = $props()
 
-  const NAMES: Record<Module, [string, string]> = {
-    hurtigtaster: ['Hurtigtaster', 'Handlinger med tastene for Windows og Mac'],
-    oppslag: ['Oppslag', 'Ord og begreper med forklaring'],
-    kort: ['Kort', 'Kort med forside og bakside'],
-    steg: ['Steg', 'Veiledninger delt i steg'],
-  }
-
   let name = $state('')
-  let choice = $state<Module | LibraryKey>('oppslag')
+  let choice = $state<Module>('oppslag')
   let error = $state('')
 
   async function submit(event: SubmitEvent) {
     event.preventDefault()
-    const ready = choice in LIBRARY ? LIBRARY[choice as LibraryKey] : null
-    error = (await (ready ? app.addTab(name, ready.module, ready.text) : app.addTab(name, choice as Module))) ?? ''
+    error = (await app.addTab(name, choice)) ?? ''
     if (!error) {
       dialog?.close()
       name = ''
@@ -38,19 +30,11 @@
       {#each MODULES as m (m)}
         <label class="choice">
           <input type="radio" name="module" value={m} bind:group={choice} />
-          <span><strong>{NAMES[m][0]}</strong> {NAMES[m][1]}</span>
+          <span><strong>{MODULE_INFO[m][0]}</strong> {MODULE_INFO[m][1]}</span>
         </label>
       {/each}
     </fieldset>
-    <fieldset>
-      <legend>Ferdige lister</legend>
-      {#each Object.entries(LIBRARY) as [key, ready] (key)}
-        <label class="choice">
-          <input type="radio" name="module" value={key} bind:group={choice} onchange={() => (name ||= ready.name)} />
-          <span><strong>{ready.name}</strong> {ready.description}</span>
-        </label>
-      {/each}
-    </fieldset>
+    <p><button type="button" class="link-button" onclick={() => { dialog?.close(); app.library = { pack: null } }}>{app.t('fra biblioteket')}</button></p>
     {#if error}<p class="error" role="alert">{error}</p>{/if}
     <div class="actions">
       <button type="button" class="button" onclick={() => dialog?.close()}>{app.t('avbryt')}</button>

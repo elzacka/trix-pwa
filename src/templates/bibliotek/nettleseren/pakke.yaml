@@ -1,0 +1,11 @@
+navn: Nettleseren
+beskrivelse: Hurtigtastene i nettleserne Chrome og Edge
+maler:
+  - fil: chrome.md
+    navn: Chrome
+    modul: hurtigtaster
+    beskrivelse: Hurtigtastene i Google Chrome
+  - fil: edge.md
+    navn: Edge
+    modul: hurtigtaster
+    beskrivelse: Hurtigtastene i Microsoft Edge

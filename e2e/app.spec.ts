@@ -78,10 +78,12 @@ test('the app opens at once; the menu asks where the files live, and moving keep
 
 test('a browser that refuses its storage says why instead of a blank page', async ({ browser, browserName }) => {
   test.skip(browserName !== 'webkit', 'Only WebKit refuses its storage in a temporary profile, as in private browsing')
-  const context = await browser.newContext()
+  // A dark device, but light is the default before any file is read.
+  const context = await browser.newContext({ colorScheme: 'dark' })
   const page = await context.newPage()
   await page.goto('./')
   await expect(page.getByRole('alert')).toContainText('privat nettlesing')
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(248, 250, 252)')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await context.close()
 })

@@ -123,7 +123,8 @@ Under **Databehandling** i menyen:
   nettleseren tar Trix med filene til mappa. En fil som allerede finnes i
   mappa, blir ikke endret. Hvis versjonen i nettleseren er en annen, laster
   Trix den ned som zip. Eksempelfanene du ikke har endret, blir ikke med til
-  en mappe som allerede har faner. Finnes i Chrome og Edge på datamaskin og i Chrome på Android.
+  en mappe som allerede har faner. Finnes i Chrome og Edge på datamaskin og
+  i Chrome på Android.
 
 Filene i nettleseren forsvinner hvis du sletter nettleserdata for Trix. Lag
 en sikkerhetskopi med jevne mellomrom hvis du bruker Safari eller Firefox.

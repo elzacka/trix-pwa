@@ -73,6 +73,8 @@ class App {
   }
 
   async start() {
+    // Light from the first paint: the default setup, until Oppsett.md is read.
+    applyTheme(this.setup)
     try {
       this.saved = (await loadFolder()) ?? null
     } catch {

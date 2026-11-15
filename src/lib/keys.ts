@@ -101,6 +101,7 @@ export function pressedCombo(e: KeyEvent, os: Os): string | null {
 }
 
 const ALTERNATIVE_LIMIT = 20
+const PART_LIMIT = 40
 
 const QUOTED = /"([^"]+)"|«([^»]+)»/g
 
@@ -108,7 +109,7 @@ const QUOTED = /"([^"]+)"|«([^»]+)»/g
 export function keyParts(cell: string, os: Os): KeyPart[][] {
   const alternatives = cell.split(/\s+eller\s+/i)
   // Real cells hold a few alternatives; a crafted one with thousands shows as text.
-  if (alternatives.length > ALTERNATIVE_LIMIT) return [[{ text: cell }]]
+  if (alternatives.length > ALTERNATIVE_LIMIT || (cell.match(QUOTED)?.length ?? 0) > PART_LIMIT) return [[{ text: cell }]]
   return alternatives
     .map(alternative => {
       const parts: KeyPart[] = []

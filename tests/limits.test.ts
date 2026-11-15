@@ -59,5 +59,6 @@ describe('limits', () => {
     expect(entry.segments.length).toBeLessThanOrEqual(200)
     expect(entry.tags.length).toBeLessThanOrEqual(50)
     expect(keyParts(Array(30).fill('x').join(' eller '), 'mac')).toHaveLength(1)
+    expect(keyParts('"a" '.repeat(100), 'mac')).toEqual([[{ text: '"a" '.repeat(100) }]])
   })
 })

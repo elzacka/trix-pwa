@@ -11,6 +11,14 @@
 
   const searching = $derived(app.view.query.trim() !== '')
 
+  // One parse budget for the whole entry: past it, the rest shows as plain text, so many boxes cannot add up.
+  const BUDGET = 100_000
+  const parsed = $derived.by(() => {
+    let used = 0
+    return segments.map(s => (used += s.text.length) <= BUDGET)
+  })
+  const nodes = (text: string, i: number) => (parsed[i] ? parseMarkdown(text).children : [{ type: 'paragraph' as const, children: [{ type: 'text' as const, value: text }] }])
+
   function toggleTag(tag: string) {
     const view = app.views[app.current]
     view.tags = view.tags.includes(tag) ? view.tags.filter(t => t !== tag) : [...view.tags, tag]
@@ -20,11 +28,11 @@
 
 {#each segments as segment, i (i)}
   {#if segment.kind === 'md'}
-    <Md nodes={parseMarkdown(segment.text).children} {level} />
+    <Md nodes={nodes(segment.text, i)} {level} />
   {:else}
     <details class="box" open={searching}>
       <summary><Inline text={segment.title} /></summary>
-      <Md nodes={parseMarkdown(segment.text).children} {level} />
+      <Md nodes={nodes(segment.text, i)} {level} />
     </details>
   {/if}
 {/each}

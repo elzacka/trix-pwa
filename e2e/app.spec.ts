@@ -21,7 +21,9 @@ async function start(page: Page) {
   })
   await page.goto('./')
   await page.getByRole('button', { name: /Velg mappe|Fortsett/ }).click()
-  await expect(page.getByRole('tab', { name: 'Oppslag' })).toBeVisible()
+  const alert = page.getByRole('alert')
+  await expect(page.getByRole('tab', { name: 'Oppslag' }).or(alert)).toBeVisible()
+  if (await alert.isVisible()) throw new Error(`Start failed: ${await alert.textContent()}`)
   return errors
 }
 

@@ -47,7 +47,7 @@
       {#each runs(group.items) as run (run.items[0].id)}
         {#if run.box}
           <details class="box" open={view.query.trim() !== ''}>
-            <summary><Inline text={run.box} markup={tab.markup} /></summary>
+            <summary><span><Inline text={run.box} markup={tab.markup} /></span></summary>
             {#each run.items as item (item.id)}{@render row(item)}{/each}
           </details>
         {:else}

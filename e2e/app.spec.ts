@@ -390,16 +390,35 @@ test('no WCAG 2.2 AA violations on any tab, an open entry, the editor or the for
     await page.getByRole('tab', { name }).click()
     await check(name)
   }
-  // Dark is a choice in «Tilpass appen»; here set straight on the page.
-  const scheme = (value: string) => page.evaluate(v => (document.documentElement.style.colorScheme = v), value)
-  await scheme('dark')
+  // Dark is a choice in «Tilpass appen», saved in Oppsett.md; light is the default.
+  const background = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor)
+  expect(await background()).toBe('rgb(248, 250, 252)')
+  const mode = async (value: string) => {
+    await page.getByRole('button', { name: 'Flere valg' }).click()
+    await page.getByRole('button', { name: 'Tilpass appen' }).click()
+    await page.getByLabel('Lys eller mørk').selectOption(value)
+    await page.getByRole('button', { name: 'Lagre' }).click()
+    await expect(page.getByRole('tab', { name: 'Kort' })).toBeVisible()
+  }
+  await mode('mørk')
+  expect(await background()).toBe('rgb(17, 20, 24)')
+  await page.reload()
+  await expect(page.getByRole('tab', { name: 'Kort' })).toBeVisible()
+  expect(await background()).toBe('rgb(17, 20, 24)')
   for (const name of ['Hurtigtaster', 'Kort']) {
     await page.getByRole('tab', { name }).click()
     await check(`${name}, mørk`)
   }
   await page.getByRole('button', { name: /Snu kortet: Spørsmål/ }).click()
   await check('bakside, mørk')
-  await scheme('light')
+  // «Som enheten» follows the device.
+  await mode('system')
+  expect(await background()).toBe('rgb(248, 250, 252)')
+  await page.emulateMedia({ colorScheme: 'dark' })
+  expect(await background()).toBe('rgb(17, 20, 24)')
+  await page.emulateMedia({ colorScheme: 'light' })
+  await mode('lys')
+  expect(await background()).toBe('rgb(248, 250, 252)')
   await page.getByRole('tab', { name: 'Oppslag' }).click()
   await page.getByRole('button', { name: /Oppslag med lukket boks/ }).click()
   await page.getByText('Mer om dette').click()

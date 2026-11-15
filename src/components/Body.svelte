@@ -31,7 +31,7 @@
     <Md nodes={nodes(segment.text, i)} {level} />
   {:else}
     <details class="box" open={searching}>
-      <summary><Inline text={segment.title} /></summary>
+      <summary><span><Inline text={segment.title} /></span></summary>
       <Md nodes={nodes(segment.text, i)} {level} />
     </details>
   {/if}

@@ -39,6 +39,8 @@ const TOKEN: Record<ColorName, string> = {
 }
 
 const SCHEME: Record<Mode, string> = { lys: 'light', mørk: 'dark', system: 'light dark' }
+// The build turns light-dark() into two switches set by a media query; a chosen mode sets them itself. «system» leaves them to the query.
+const SWITCHES: Record<Mode, [string, string] | null> = { lys: ['initial', ' '], mørk: [' ', 'initial'], system: null }
 
 /** Text over each fill: white or black, whichever reads better. */
 const ON: ColorName[] = ['aksent', 'forside', 'bakside']
@@ -77,6 +79,11 @@ export function applyTheme(setup: Setup): string[] {
   if (setup.font) root.style.setProperty('--font', `"${setup.font}", system-ui, sans-serif`)
   root.style.setProperty('--size', `${setup.size / 16}rem`)
   root.style.colorScheme = SCHEME[setup.mode]
+  const switches = SWITCHES[setup.mode]
+  if (switches) {
+    root.style.setProperty('--lightningcss-light', switches[0])
+    root.style.setProperty('--lightningcss-dark', switches[1])
+  }
   // The browser's title bar follows the chosen mode; as the device, each meta keeps its media query.
   for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
     const own = meta.media.includes('dark') ? 'dark' : 'light'

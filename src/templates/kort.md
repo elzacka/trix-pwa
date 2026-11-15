@@ -25,10 +25,35 @@ Under:
 - **fet**, *kursiv*, [lenke](https://…). Lenker virker på baksiden.
 -->
 
-## Eksempel
+## Gruppe 1
 
-### Kort
+### Kort 1
 Forsiden har tittelen og det første avsnittet.
 
 Baksiden har resten. Trykk på kortet igjen for å snu det tilbake.
+#eksempel
+
+### Spørsmål på forsiden?
+Et kort kan være et spørsmål med svaret på baksiden.
+
+**Svar:** Svaret står her.
+
+::: Hint
+En lukket boks på baksiden.
+:::
+#quiz
+
+### Kort 3
+Et kort med en liste på baksiden.
+
+- Punkt én
+- Punkt to
+#eksempel
+
+## Gruppe 2
+
+### Kort 4
+Grupper samler kort som hører sammen.
+
+Med A–Å i valgene sorterer appen gruppene og kortene alfabetisk.
 #eksempel

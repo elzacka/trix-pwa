@@ -29,12 +29,44 @@ Under:
   med små bokstaver og bindestrek for mellomrom.
 -->
 
-## Eksempel
+## Gruppe A
 
-### Oppslag
-Et ord eller et begrep med en forklaring. Trykk på oppslaget for å lese resten.
+### Første oppslag
+Den første linjen under tittelen står i lista. Trykk på oppslaget for å lese resten.
 
-Resten av forklaringen kan ha flere avsnitt, lister og tabeller.
-Også: Begrep
+Resten av forklaringen kan ha flere avsnitt, **fet** og *kursiv* tekst og [lenker til nettsider](https://trix.tazk.no/).
+Også: Oppslag, Begrep
 Engelsk: Entry
+#eksempel
+
+### Oppslag med liste og tabell
+Et oppslag kan ha lister og tabeller.
+
+- Punkt én
+- Punkt to
+
+| Kolonne 1 | Kolonne 2 |
+|---|---|
+| Verdi A | Verdi B |
+| Verdi C | Verdi D |
+#eksempel #tabell
+
+## Gruppe B
+
+### Oppslag med lukket boks
+Det ikke alle trenger, kan stå i en lukket boks.
+
+::: Mer om dette
+Teksten i boksen vises når du åpner den.
+:::
+#boks
+
+### Oppslag med deler
+Underoverskrifter deler et langt oppslag. En lenke kan gå rett til en del.
+
+#### Del 1
+Tekst i den første delen.
+
+#### Del 2
+Tekst i den andre delen. [Gå til del 1](#del-1)
 #eksempel

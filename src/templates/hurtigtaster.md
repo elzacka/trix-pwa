@@ -27,6 +27,21 @@ Under:
 - Ord: ctrl, shift, alt, cmd, opt, win, fn, mellomrom, retur, tab, esc, slett, venstre, høyre, opp, ned, F1–F12
 -->
 
+## Gruppe 1
+
+- Handling med like taster | ctrl K | ⌘K
+- Handling med ulike taster | ctrl shift S | ⌘⇧S
+- Bare på Windows | win D |
+- Bare på Mac | | ⌃⌘Q
+- To hurtigtaster for samme handling | ctrl Y eller ctrl shift Z | ⌘⇧Z
+- Med tekst mellom tastene | "hold inne" shift | "hold inne" ⇧
+- [Handling med lenke](https://trix.tazk.no/) | F1
+
+::: Flere handlinger i en lukket boks
+- Handling i boksen | alt F4 | ⌘Q
+- Enda en handling | ctrl W | ⌘W
+:::
+
 ## Trix
 
 - Søk | ctrl F | ⌘F

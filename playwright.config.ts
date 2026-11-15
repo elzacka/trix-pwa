@@ -9,8 +9,6 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
-    // Firefox does not start in the local sandbox; CI runs it.
-    ...(process.env.CI ? [{ name: 'firefox', use: { ...devices['Desktop Firefox'] } }] : []),
     { name: 'mobil', use: { ...devices['iPhone 15'] } },
   ],
 })

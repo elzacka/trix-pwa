@@ -74,7 +74,8 @@ function markdown(runs: Run[], spend: (text: string) => string): string {
 
 const plainText = (runs: Run[]) => runs.map(r => r.text).join('').replace(/\s+/g, ' ').trim()
 
-const cell = (text: string) => text.replace(/\|/g, '\\|')
+// The shortcut parser reads only `\|` as an escape (content.ts `cells`); every other backslash is text.
+const cell = (text: string) => text.split('|').join('\\|')
 
 // In a table the Markdown parser reads `\\|` as a backslash and a column break, so a backslash before a pipe is escaped too.
 const tableCell = (text: string) => text.replace(/\\?\|/g, m => (m.length === 2 ? '\\\\\\|' : '\\|'))

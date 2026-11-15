@@ -39,7 +39,7 @@ The app never sends the files anywhere.
 |---|---|
 | `npm run dev` | Dev server at `localhost:5173` (no CSP, no service worker) |
 | `npm test` | Unit tests (Vitest) |
-| `npm run e2e` | Builds, then runs Playwright in Chromium, WebKit and WebKit on a phone (CI adds Firefox), with axe-core for WCAG 2.2 AA |
+| `npm run e2e` | Builds, then runs Playwright in Chromium, WebKit and WebKit on a phone, with axe-core for WCAG 2.2 AA |
 | `npm run build` | `svelte-check`, then the build in `dist/` |
 
 Stack: Svelte 5, Vite 8, vite-plugin-pwa (Workbox), TypeScript 6. Version:

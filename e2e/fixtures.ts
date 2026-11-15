@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test as base } from '@playwright/test'
 
-// WebKit and Firefox refuse OPFS in a temporary profile, as in private browsing: they get a normal one.
+// WebKit refuses OPFS in a temporary profile, as in private browsing: it gets a normal one.
 export const test = base.extend({
   context: async ({ context, playwright, browserName }, use, testInfo) => {
     if (browserName === 'chromium') return use(context)

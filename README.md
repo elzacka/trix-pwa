@@ -1,7 +1,7 @@
 # Trix PWA
 
-The web version of [Trix](https://github.com/elzacka/trix): an app shell for
-quick reference. Four modules, each shown as a tab: shortcuts
+An app for quick reference that installs from the browser and works
+offline. Four modules, each shown as a tab: shortcuts
 (`hurtigtaster`), lookup (`oppslag`), flip cards (`kort`) and step-by-step
 guides (`steg`). Setup and content are plain Markdown files in a folder
 named `trix-data`.

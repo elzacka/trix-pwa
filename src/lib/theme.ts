@@ -15,12 +15,22 @@ export function contrast(a: Rgb, b: Rgb): number {
 const WHITE: Rgb = [255, 255, 255]
 const BLACK: Rgb = [0, 0, 0]
 
-/** A colour as the browser reads it, or null when it is not one. */
-function rgb(value: string, probe: HTMLElement): Rgb | null {
+/** A colour in sRGB as the browser paints it, or null when it is not one. Painting also resolves oklch(), names and the like. */
+function rgb(value: string, paint: CanvasRenderingContext2D): Rgb | null {
   if (!CSS.supports('color', value)) return null
-  probe.style.color = value
-  const numbers = getComputedStyle(probe).color.match(/[\d.]+/g)?.slice(0, 3).map(Number)
-  return numbers?.length === 3 ? (numbers as Rgb) : null
+  paint.clearRect(0, 0, 1, 1)
+  paint.fillStyle = value
+  paint.fillRect(0, 0, 1, 1)
+  const [r, g, b] = paint.getImageData(0, 0, 1, 1).data
+  return [r, g, b]
+}
+
+const painter = () => document.createElement('canvas').getContext('2d', { willReadFrequently: true })!
+
+/** A colour as #rrggbb, for a colour field. */
+export function hex(value: string): string {
+  const color = rgb(value, painter()) ?? [0, 0, 0]
+  return `#${color.map(c => c.toString(16).padStart(2, '0')).join('')}`
 }
 
 const TOKEN: Record<ColorName, string> = {
@@ -37,14 +47,12 @@ export function applyTheme(setup: Setup): string[] {
   const problems: string[] = []
   const root = document.documentElement
   root.removeAttribute('style')
-  const probe = document.createElement('span')
-  probe.hidden = true
-  document.body.append(probe)
+  const paint = painter()
   for (const mode of ['light', 'dark'] as const) {
     const resolved = {} as Record<ColorName, Rgb>
     for (const name of COLORS) {
       const value = setup.colors[name][mode]
-      const color = rgb(value, probe)
+      const color = rgb(value, paint)
       if (!color) {
         problems.push(`Oppsett.md: «${value}» er ikke en farge (${name})`)
         continue
@@ -63,7 +71,6 @@ export function applyTheme(setup: Setup): string[] {
       }
     }
   }
-  probe.remove()
   if (setup.font) root.style.setProperty('--font', `"${setup.font}", system-ui, sans-serif`)
   root.style.setProperty('--size', `${setup.size / 16}rem`)
   document.title = setup.name

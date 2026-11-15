@@ -1,10 +1,10 @@
 <script lang="ts">
   import { tick } from 'svelte'
   import { app } from './lib/app.svelte'
-  import { SETUP_FILE } from './lib/setup'
   import { count, entryGroups, has, shortcutGroups } from './lib/view'
   import AddTab from './components/AddTab.svelte'
   import Cards from './components/Cards.svelte'
+  import Customize from './components/Customize.svelte'
   import Editor from './components/Editor.svelte'
   import Guides from './components/Guides.svelte'
   import Icon from './components/Icon.svelte'
@@ -63,7 +63,7 @@
 
   /** Esc closes the innermost thing that is open. */
   function keydown(event: KeyboardEvent) {
-    if (app.phase !== 'ready' || app.editing || document.querySelector('dialog[open]')) return
+    if (app.phase !== 'ready' || app.editing || app.customizing || document.querySelector('dialog[open]')) return
     const mod = app.os === 'mac' ? event.metaKey : event.ctrlKey
     if (mod && /^[1-9]$/.test(event.key)) {
       event.preventDefault()
@@ -83,7 +83,7 @@
   }
 
   // The files are the user's: read them again when the app comes back into view.
-  const reload = () => app.phase === 'ready' && !app.editing && app.load().catch(error => (app.error = String(error)))
+  const reload = () => app.phase === 'ready' && !app.editing && !app.customizing && app.load().catch(error => (app.error = String(error)))
 </script>
 
 <svelte:window onkeydown={keydown} onfocus={reload} />
@@ -94,6 +94,8 @@
 {:else if app.phase === 'ready'}
   {#if app.editing}
     <Editor editing={app.editing} />
+  {:else if app.customizing}
+    <Customize />
   {:else}
     <header class="bar">
       <img src="{import.meta.env.BASE_URL}icon.svg" alt="" class="logo" />
@@ -111,7 +113,7 @@
         <ul>
           {#if tab}<li><button type="button" onclick={() => run(() => app.edit(tab.file))}>{app.t('rediger', { fane: tab.name })}</button></li>{/if}
           <li><button type="button" onclick={() => run(() => addDialog?.showModal())}>{app.t('ny fane')}</button></li>
-          <li><button type="button" onclick={() => run(() => app.edit(SETUP_FILE))}>{app.t('oppsett')}</button></li>
+          <li><button type="button" onclick={() => run(() => (app.customizing = true))}>{app.t('oppsett')}</button></li>
           <li class="separator"><button type="button" onclick={() => run(() => app.backup())}>{app.t('eksporter')}</button></li>
           <li><button type="button" onclick={() => run(() => restoreInput?.click())}>{app.t('importer')}</button></li>
           <li><button type="button" onclick={() => run(() => app.switchFolder())}>{app.t('bytt mappe')}</button></li>

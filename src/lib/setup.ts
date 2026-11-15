@@ -56,7 +56,7 @@ export function colorPair(value: string): Pair | null {
   return COLOR.test(pair.light) && COLOR.test(pair.dark) ? pair : null
 }
 
-const FONT = /^[\p{L}\p{N} _-]{1,60}$/u
+export const FONT = /^[\p{L}\p{N} _-]{1,60}$/u
 
 /** Each key on its own, so one bad value never drops the rest; a problem names the key and its line. */
 export function parseSetup(text: string): Setup {

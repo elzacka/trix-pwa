@@ -20,7 +20,9 @@ The app never sends the files anywhere.
 ## Files
 
 - `Oppsett.md`: YAML at the top sets the name, tab order, colours, font and
-  UI texts. Format: the file's top comment ([src/templates/Oppsett.md](src/templates/Oppsett.md)).
+  UI texts. The menu's «Tilpass appen» edits it as a form and writes back only
+  the changed keys, comments kept. Format: the file's top comment
+  ([src/templates/Oppsett.md](src/templates/Oppsett.md)).
 - One `.md` per tab. YAML at the top names the module (`modul: oppslag`); a
   file without it is not a tab. Format: each template in
   [src/templates/](src/templates/).

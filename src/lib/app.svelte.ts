@@ -14,6 +14,7 @@ import type { TextKey } from './texts'
 import { applyTheme } from './theme'
 import { emptyView, findAnchor, type View } from './view'
 import { makeBackup, readBackup, download } from './backup'
+import { setupChanged, tabChanged, writeSetup, writeTab, type Draft } from './customize'
 
 type Phase = 'loading' | 'start' | 'reconnect' | 'ready'
 
@@ -40,6 +41,7 @@ class App {
   error = $state('')
   trail = $state<Mark[]>([])
   editing = $state.raw<Editing | null>(null)
+  customizing = $state(false)
   update = $state.raw<(() => void) | null>(null)
   readonly os = currentOs()
 
@@ -241,6 +243,29 @@ class App {
       throw error
     }
     this.editing = null
+    await this.load()
+    return true
+  }
+
+  /** Writes Oppsett.md and the tabs the form changed; false, with nothing written, when one of them changed elsewhere. */
+  async customize(before: Draft, after: Draft): Promise<boolean> {
+    const folder = this.folder!
+    const writes: { name: string; text: string; original: string | null }[] = []
+    if (setupChanged(before, after)) {
+      const original = this.files.get(SETUP_FILE)?.text ?? null
+      writes.push({ name: SETUP_FILE, text: writeSetup(original ?? '', before, after), original })
+    }
+    for (const tab of after.tabs) {
+      const old = before.tabs.find(t => t.file === tab.file)
+      const original = this.files.get(tab.file)?.text
+      if (old && original !== undefined && tabChanged(old, tab)) writes.push({ name: tab.file, text: writeTab(original, tab), original })
+    }
+    for (const { name, original } of writes) {
+      const now = (await folder.exists(name)) ? (await folder.read(name)).text : null
+      if (now !== original) return false
+    }
+    for (const { name, text, original } of writes) await folder.write(name, text, original)
+    this.customizing = false
     await this.load()
     return true
   }

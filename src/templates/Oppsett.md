@@ -15,7 +15,8 @@ skrift:
 <!--
 Appen henter navnet, rekkefølgen på fanene, fargene, skriften og tekstene fra
 toppen av denne fila, mellom linjene med ---. Appen viser endringene når du
-lagrer fila. En linje du sletter, får standardverdien.
+lagrer fila. En linje du sletter, får standardverdien. Du kan også endre
+alt dette i «Tilpass appen» i menyen.
 
 - navn: Navnet på appen
 - faner: Filene i samme rekkefølge som fanene. En fil som ikke står her, kommer til slutt.

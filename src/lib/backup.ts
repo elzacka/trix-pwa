@@ -1,6 +1,7 @@
 // A backup is a zip of the folder's Markdown files; restoring writes them back.
 
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
+import { doc } from './pip.svelte'
 import { isFileName } from './text'
 import { FILE_LIMIT, type Folder } from './storage'
 
@@ -35,7 +36,8 @@ export function readBackup(bytes: Uint8Array): Map<string, string> {
 
 export function download(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob)
-  const link = Object.assign(document.createElement('a'), { href: url, download: name })
+  // From the document the app is in, so a download from the floating window starts there and not behind it.
+  const link = Object.assign(doc().createElement('a'), { href: url, download: name })
   link.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }

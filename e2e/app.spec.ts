@@ -260,7 +260,7 @@ test('the app floats above other windows and comes back as it was', async ({ pag
   await expect(pip.getByRole('searchbox')).toHaveValue('første')
   // Backup and restore from the floating window; the question opens there, not behind it.
   await pip.getByRole('button', { name: 'Flere valg' }).click()
-  const saved = page.waitForEvent('download')
+  const saved = pip.waitForEvent('download')
   await pip.locator('#menu summary').click()
   await pip.getByRole('button', { name: 'Lag sikkerhetskopi' }).click()
   const zip = await (await saved).path()
@@ -394,7 +394,7 @@ test('no WCAG 2.2 AA violations on any tab, an open entry, the editor or the for
   }
   // Dark is a choice in «Tilpass appen», saved in Oppsett.md; light is the default.
   const background = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor)
-  expect(await background()).toBe('rgb(248, 250, 252)')
+  await expect.poll(background).toBe('rgb(248, 250, 252)')
   const mode = async (value: string) => {
     await page.getByRole('button', { name: 'Flere valg' }).click()
     await page.getByRole('button', { name: 'Tilpass appen' }).click()
@@ -403,10 +403,10 @@ test('no WCAG 2.2 AA violations on any tab, an open entry, the editor or the for
     await expect(page.getByRole('tab', { name: 'Kort' })).toBeVisible()
   }
   await mode('mørk')
-  expect(await background()).toBe('rgb(17, 20, 24)')
+  await expect.poll(background).toBe('rgb(17, 20, 24)')
   await page.reload()
   await expect(page.getByRole('tab', { name: 'Kort' })).toBeVisible()
-  expect(await background()).toBe('rgb(17, 20, 24)')
+  await expect.poll(background).toBe('rgb(17, 20, 24)')
   for (const name of ['Hurtigtaster', 'Kort']) {
     await page.getByRole('tab', { name }).click()
     await check(`${name}, mørk`)
@@ -415,12 +415,12 @@ test('no WCAG 2.2 AA violations on any tab, an open entry, the editor or the for
   await check('bakside, mørk')
   // «Som enheten» follows the device.
   await mode('system')
-  expect(await background()).toBe('rgb(248, 250, 252)')
+  await expect.poll(background).toBe('rgb(248, 250, 252)')
   await page.emulateMedia({ colorScheme: 'dark' })
-  expect(await background()).toBe('rgb(17, 20, 24)')
+  await expect.poll(background).toBe('rgb(17, 20, 24)')
   await page.emulateMedia({ colorScheme: 'light' })
   await mode('lys')
-  expect(await background()).toBe('rgb(248, 250, 252)')
+  await expect.poll(background).toBe('rgb(248, 250, 252)')
   await page.getByRole('tab', { name: 'Oppslag' }).click()
   await page.getByRole('button', { name: /Oppslag med lukket boks/ }).click()
   await page.getByText('Mer om dette').click()
